@@ -3,7 +3,7 @@
     "target": "ES2020",
     "module": "ESNext",
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDir": "backend",
     "moduleResolution": "Node",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
