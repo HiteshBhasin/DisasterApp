@@ -1,7 +1,7 @@
 
 import express from 'express';
 const app =  express();
-const port: number = process.env.PORT || 8080 ; 
+let port = process.env.PORT || 8080;
 import fs from 'fs';
 
 import path from 'path';
