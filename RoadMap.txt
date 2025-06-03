@@ -1,0 +1,243 @@
+﻿Disaster App:
+
+
+Scope: The scope for this application will be within Canada to notify users and also help governments. The application will use real time from NASA’s Firms web services to provide the most updated fire areas.
+
+
+Goal: With the help of this app, a user can quickly get information about safe zones .  
+
+
+Core App/Extension Features:
+
+
+* Real-Time Disaster Mapping
+Use APIs like NASA FIRMS, Global Forest Watch, or local government feeds to show wildfire perimeters.
+Include layers for other natural disasters: floods, earthquakes, hurricanes.
+
+* Air Quality and Health Alerts
+Integrate with AirNow, IQAir, or OpenAQ to show real-time AQI.
+Issue alerts for at-risk populations (kids, elderly, asthma patients).
+
+* Evacuation Zones & Safe Routes
+Show up-to-date evacuation zones and real-time traffic data.
+Suggest safest routes out of danger areas (use Google Directions API + disaster overlays).
+
+* Shelter & Aid Locations
+Display nearest government/community shelters.
+Show real-time status: full, partially available, food/medical aid available.
+
+
+For Users: 
+
+
+   * For the travellers a safe route and shelter.
+   * Emergency contacts 
+   * Safety tips 
+   * Hospitals Locations
+   * Calculate the route distance.
+
+
+For Governments:
+   * Live Incident Reporting Dashboard
+Crowdsourced + official reports of fires, roadblocks, or resource needs.
+Ability to filter and verify user-submitted data.
+
+   * Predictive Analytics (AI-based)
+Use historical weather + vegetation data to predict fire spread direction.
+Provide dashboards for decision-makers.
+
+      * Infrastructure Risk Mapping
+Map of critical infrastructure (power stations, hospitals, water lines).
+Highlight which ones are under threat or need priority protection.
+RoadMap:
+
+
+Disaster Tracker App Roadmap (MVP + Beyond):
+Total Time Estimate: 7–8 Weeks (MVP)
+ Phase 1: Planning & Setup (1 Week)
+         * Define MVP scope (core features only)
+         * Choose tech stack (suggested below)
+         * Gather API sources (NASA FIRMS, USGS, OpenWeatherMap, etc.)
+         * Setup GitHub repo, basic folder structure
+
+Deliverables:
+        Feature list finalized
+        Tech stack chosen
+        API keys secured
+        Project initialized
+
+
+Phase 2: UI/UX Design (1 Week)
+            * Design wireframes (home screen, map screen, alerts, shelter finder)
+            * Design for mobile-first (consider PWA)
+            * Choose color schemes, icons (especially for disaster types)
+
+Deliverables:
+ Wireframes/prototypes (Figma or Pen/Paper)
+Design components prepared
+
+
+Core Development (MVP) (3–4 Weeks)
+Week 1-2:
+               * Build a web scraping tool to gather more information. 
+               * Set up frontend (React Native, Flutter, or PWA with React)
+               * Implement Google Maps API or Leaflet for map
+               * Overlay wildfire data from NASA FIRMS or EONET
+               * Basic marker system with disaster type, timestamp
+
+Week 3-4:
+                  * Add real-time alerts (push/local notifications)
+                  * Add shelter location overlay (static or from open data source)
+                  * Add air quality data layer (from OpenAQ or AirNow)
+
+Deliverables:
+  Map view with real-time disaster overlays
+ Push alerts for fire zones
+ Basic shelter info display
+MVP app ready to test
+
+
+Testing & Debugging (1 Week)
+                     * Manual testing on mobile and desktop
+                     * Catch geolocation bugs, API data gaps
+
+                     * Optimize load speed and map rendering
+
+Deliverables:
+  All MVP features tested
+ Error handling in place
+
+
+Launch & Feedback (1 Week)
+                        * Deploy on Firebase or Netlify (for PWA) or publish TestFlight/Play Store beta
+                        * Share with friends, community, local groups
+                        * Collect early feedback and prioritize fixes
+
+Deliverables:
+  Deployed working version
+ Early users onboarded
+ Feedback document start
+ Tech Stack:
+
+
+Area
+	Recommended Tools
+	Frontend
+	React (PWA), or React Native
+	Map
+	Google Maps API or Leaflet.js
+	Real-time Data
+	NASA FIRMS, USGS Earthquake API, OpenAQ
+	Backend (optional)
+	Node.js + Express or Firebase
+	Push Notifications
+	Firebase Cloud Messaging (FCM)
+	Database (if needed)
+	Firebase Realtime DB or MongoDB Atlas
+	Deployment
+	Netlify (web), Expo (React Native), Firebase Hosting
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+To be consider in future:
+                           * Drone or Satellite Feeds Integration
+
+                              * Display drone imagery or satellite heat maps to aid planning.
