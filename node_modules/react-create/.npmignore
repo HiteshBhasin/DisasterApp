@@ -1,0 +1,7 @@
+.babelrc
+.eslintrc
+.travis.yml
+test/
+src
+*.log
+node_modules
