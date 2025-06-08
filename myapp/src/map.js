@@ -1,31 +1,26 @@
 import React ,{useRef, useState} from "react";
 
-import {MapContainer, TileLayer, Marker, Popup, useMapEvent} from 'react-leaflet';
+import {MapContainer, TileLayer, Marker, Popup, useMapEvent, useMap} from 'react-leaflet';
 import "leaflet/dist/leaflet.css";
-import { map } from "leaflet";
 
 function SimpleMap() {
   const mapRef = useRef(null);
-  const latitude = 49.8951;
-  const longitude = -97.1384;
-
-  function GettingInfo() {
-    const form = document.getElementById("form");
-
+  var latitude = 49.8951;
+  var longitude = -97.1384;
+  
+function SearchInfo() {
+    const map = useMap();
+  const form = document.getElementById("form");
     if (!form) {
       console.error("Form not found");
       return;
     }
-
     const button = form.querySelector("button");
-
     if (!button) {
       console.error("Button not found inside form");
       return;
     }
-
-    // Add event listener to the button
-    button.addEventListener("click", (event) => {
+    button.addEventListener("click", async (event) => {
       event.preventDefault(); // prevent form from refreshing the page
 
       const input = form.querySelector("input");
@@ -34,12 +29,26 @@ function SimpleMap() {
         console.error("Input not found");
         return;
       }
-
+      const searchValue = input.value;
       console.log("Input value:", input.value);
-    });
-  }
+      const url = `http://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchValue)}`;
 
-  function InitialLocation() {
+      let promise = await fetch(url);
+      let json = await promise.json();
+      latitude = json[0].lat;
+      longitude = json[0].lon;
+
+      map.setView([latitude, longitude]);
+      map.flyTo([latitude,longitude],map.getZoom())
+      
+      // You can handle the fetched latitude and longitude here, e.g., display them or use them as needed
+      console.log("Latitude:", latitude, "Longitude:", longitude);
+    });
+    
+    
+}
+  
+function InitialLocation() {
     const [position, setPostion] = useState(null);
     const map = useMapEvent({
       click() {
@@ -60,6 +69,7 @@ function SimpleMap() {
 
   return (
     <div className="map" id="map">
+      
       <MapContainer
         center={[latitude, longitude]}
         zoom={13}
@@ -71,20 +81,17 @@ function SimpleMap() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <InitialLocation />
-        <GettingInfo />
+        <SearchInfo />
+        
+       
         {/* Additional map layers or components can be added here */}
       </MapContainer>
-      <form id="form">
-        <label>
-          <input type="text" id="text" />
-        </label>
-        <button type="submit" id="button">
-          {" "}
-          search
-        </button>
+     <form id="form" style={{ marginTop: "1em" }}>
+        <input type="text" id="text" placeholder="Search location..." />
+        <button type="submit">Search</button>
       </form>
     </div>
+    
   );
 }
-
 export default SimpleMap;
