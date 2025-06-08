@@ -1,23 +1,15 @@
-import logo from './logo.svg';
+import SimpleMap from './map';
 import './App.css';
 
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    {/* Leaflet CSS should be imported in index.html or via JS import */}
+     <div>
+      {/* <h1>My Leaflet.js and React Map</h1> */}
+      <SimpleMap />
+    </div>
+    {/* Leaflet JS should be imported in index.html or via npm package */}
     </div>
   );
 }
