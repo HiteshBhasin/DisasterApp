@@ -41,11 +41,14 @@ function SearchInfo() {
       map.setView([latitude, longitude]);
       map.flyTo([latitude,longitude],map.getZoom())
       
-      // You can handle the fetched latitude and longitude here, e.g., display them or use them as needed
-      console.log("Latitude:", latitude, "Longitude:", longitude);
+    
     });
-    
-    
+    return(
+    <Marker position={[latitude,longitude]}>
+        <Popup>
+            you are here!
+        </Popup>
+    </Marker>);
 }
   
 function InitialLocation() {
@@ -58,8 +61,9 @@ function InitialLocation() {
         setPostion(e.latlng);
         map.flyTo(e.latlng, map.getZoom());
       },
+      
     });
-
+    
     return position === null ? null : (
       <Marker position={position}>
         <Popup>You are here</Popup>
