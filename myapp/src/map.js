@@ -1,4 +1,5 @@
 import React ,{useRef, useState, useEffect} from "react";
+import { EmergencyShelteraddress, mapPlacement } from "./emergencyInfo";
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import {MapContainer, TileLayer, Marker, Popup, useMapEvent, useMap} from 'react-leaflet';
@@ -109,6 +110,7 @@ function SimpleMap() {
         />
         <InitialLocation />
         <SearchInfo />
+        <mapPlacement/>
         {/* Additional map layers or components can be added here */}
       </MapContainer>
       <form id="form" style={{ marginTop: "1em" }}>
@@ -116,7 +118,7 @@ function SimpleMap() {
         <button type="submit">Search</button>
       </form>
       <h2>Emergency Address</h2>
-      <EmergencyShelterAddress />
+      <EmergencyShelteraddress />
     </div>
   );
 }

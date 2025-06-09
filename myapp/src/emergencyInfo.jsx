@@ -51,7 +51,7 @@ async function mapPlacement() {
    }
 }
 
-function emergencyShelteraddress() {
+function EmergencyShelteraddress() {
     // const [info, getInfo] = useState([]);
     var informations = [add1,add2];
 
@@ -65,5 +65,5 @@ function emergencyShelteraddress() {
         </div>
     )
 }
-export { emergencyShelteraddress, mapPlacement };
+export { EmergencyShelteraddress, mapPlacement };
 
