@@ -1,6 +1,6 @@
-import React ,{useState} from "react";
+import {useState} from "react";
 import L from 'leaflet';
-import {MapContainer, TileLayer, Marker, Popup, useMapEvent, useMap} from 'react-leaflet';
+import { Marker, Popup, useMapEvent, useMap} from 'react-leaflet';
 
 const add1 = "709 Keewatin Street, Winnipeg, Manitoba";
 const add2 = "146 Selkirk Avenue, Thompson";
