@@ -16,14 +16,21 @@ function layerReturn(params) {
                 }
                 const jsonData = await data.json();
                 console.log(jsonData);
-
+                var newData = [];
+                if (jsonData && jsonData.length>0){
+                    var lat = parseFloat(jsonData.latitude);
+                    var lat = parseFloat(jsonData.longitude);
+                    var lon = jsonData.longitude;
+                    var date = jsonData.acq_date;
+                    var time = jsonData.acq_time;
+                    newData.push({lat, lon, date:date, time:time});
+                }
+                getData(newData);
             } catch (error) {
                  console.error(error.message);
             }
-
-            
-
         }
         fetchData();
     }, []);
 }
+export default layerReturn;
