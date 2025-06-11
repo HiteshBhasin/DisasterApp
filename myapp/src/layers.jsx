@@ -43,7 +43,12 @@ function layerReturn(params) {
         <LayersControl.Overlay name = "fires in Canada">
             <LayerGroup>
                 {fireData.map((fire, idx)=>{
-                    
+                    <Marker key={idx} position={[fire.lat, fire.lon]}>
+                        <Popup>
+                            Date: {fire.date}<br />
+                            Time: {fire.time}<br />
+                        </Popup>
+                    </Marker>
                 })}
             </LayerGroup>
         </LayersControl.Overlay>
