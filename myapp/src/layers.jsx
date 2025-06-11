@@ -1,6 +1,6 @@
 import {useState, useEffect} from "react";
 import L from 'leaflet';
-import { Marker, Popup, useMapEvent, useMap} from 'react-leaflet';
+import { Marker, Popup, useMapEvent, useMap, LayersControl} from 'react-leaflet';
 
 nasaApi = "https://firms.modaps.eosdis.nasa.gov/api/area/json/<adde6368823b1c811de264a026f39f29>/MODIS_NRT/NorthAmerica/24h";
 
@@ -34,7 +34,9 @@ function layerReturn(params) {
     }, []);
 
     return(
-        <l
+        <LayersControl.Overlay name = "fires in Canada">
+            
+        </LayersControl.Overlay>
     );
 }
 export default layerReturn;
