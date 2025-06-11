@@ -1,6 +1,6 @@
 import {useState, useEffect} from "react";
 import L from 'leaflet';
-import { Marker, Popup, useMapEvent, useMap, LayersControl} from 'react-leaflet';
+import { Marker, Popup, useMapEvent, useMap, LayersControl, WMSTileLayer, TileLayer, LayerGroup} from 'react-leaflet';
 
 nasaApi = "https://firms.modaps.eosdis.nasa.gov/api/area/json/<adde6368823b1c811de264a026f39f29>/MODIS_NRT/NorthAmerica/24h";
 
@@ -34,8 +34,15 @@ function layerReturn(params) {
     }, []);
 
     return(
+
+        <LayersControl.BaseLayer name = "baseMap">
+            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"></TileLayer>
+        </LayersControl.BaseLayer>,
+
         <LayersControl.Overlay name = "fires in Canada">
-            
+            <LayerGroup>
+                {fireData.map(()=>{})}
+            </LayerGroup>
         </LayersControl.Overlay>
     );
 }
