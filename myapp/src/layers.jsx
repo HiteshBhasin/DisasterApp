@@ -18,12 +18,13 @@ function layerReturn(params) {
                 console.log(jsonData);
                 var newData = [];
                 if (jsonData && jsonData.length>0){
-                    var lat = parseFloat(jsonData.latitude);
-                    var lat = parseFloat(jsonData.longitude);
-                    var lon = jsonData.longitude;
-                    var date = jsonData.acq_date;
-                    var time = jsonData.acq_time;
-                    newData.push({lat, lon, date:date, time:time});
+                    for (const jData of jsonData ){
+                        var lat = parseFloat(jData.latitude);
+                        var lon = parseFloat(jData.longitude);
+                        var date = jData.acq_date;
+                        var time = jData.acq_time;
+                        newData.push({lat, lon, date:date, time:time});
+                    }
                 }
                 getData(newData);
             } catch (error) {
@@ -41,7 +42,9 @@ function layerReturn(params) {
 
         <LayersControl.Overlay name = "fires in Canada">
             <LayerGroup>
-                {fireData.map(()=>{})}
+                {fireData.map((fire, idx)=>{
+                    
+                })}
             </LayerGroup>
         </LayersControl.Overlay>
     );
