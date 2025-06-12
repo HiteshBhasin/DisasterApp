@@ -5,7 +5,7 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import {MapContainer, TileLayer, Marker, Popup, useMapEvent, useMap} from 'react-leaflet';
 import "leaflet/dist/leaflet.css";
 import L from 'leaflet';
-import emergencyShelteraddress from "./emergencyInfo";
+import { EmergencyShelteraddress, mapPlacement } from "./emergencyInfo";
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconUrl: markerIcon,
