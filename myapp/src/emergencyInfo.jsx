@@ -1,12 +1,15 @@
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import L from 'leaflet';
-import { Marker, Popup, useMapEvent, useMap} from 'react-leaflet';
+import { Marker, Popup} from 'react-leaflet';
 
 const add1 = "709 Keewatin Street, Winnipeg, Manitoba";
-const add2 = "146 Selkirk Avenue, Thompson";
+const add2 = "146 Selkirk Avenue, Thompson, Manitoba";
+const addObject = [
+  { name: "Billy Monsieko Arena", address: add1 },
+  { name: "Burntwood Hotel", address: add2 }
+];
 
-
-async function mapPlacement() {
+ function MapPlacement() {
    const fireIcon = L.icon({
      url: 'https://www.flaticon.com/free-icons/shelter',
      iconSize: [25,25],
@@ -15,55 +18,62 @@ async function mapPlacement() {
    
    }); 
    const [positions, setPosition] = useState([]);
-   const map = useMap();
+  
 
-   var addArr = [add1,add2]
 
-   for (const add of addArr){
-     const url = `http://nominatim.openstreetmap.org/search?format=json&q=${add}`;
-     console.log(url);
-     var marker = [];
-     let promise = await fetch(url);
-            let json = await promise.json();
-            if (json && json.length > 0) {
-                for (let i=0; i<json.length;i++){
-                var latitude = parseFloat(json[i].lat);
-                var longitude = parseFloat(json[i].lon);
-                marker.push({latitude,longitude, name:json.display_name});
-                }
-            } else {
-                console.error("Location not found");
-            }
-            setPosition(marker);
+   useEffect(() => {
+    async function fetchData() {
+      const addArr = [add1, add2];
+      const markers = [];
 
-             return(
-              <>
-              {positions.map((pos,index)=>(
-                <Marker key={index} position={pos} icon={fireIcon}>
-                  <Popup>
-                      {positions.name}
-                  </Popup>
-                </Marker>
-              ))}
-              
-              </>
-             )
-   }
+      for (const add of addArr) {
+        const url = `http://nominatim.openstreetmap.org/search?format=json&q=${add}`;
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data && data.length > 0) {
+            const { lat, lon, display_name } = data[0];
+            markers.push({
+              lat: parseFloat(lat),
+              lon: parseFloat(lon),
+              name: display_name,
+            });
+          }
+        } catch (err) {
+          console.error("Error fetching location for:", add);
+        }
+      }
+
+      setPosition(markers);
+    }
+
+    fetchData();
+  }, []);
+
+  return (
+    <>
+      {positions.map((pos, index) => (
+        <Marker key={index} position={[pos.lat, pos.lon]} icon={fireIcon}>
+          <Popup>{pos.name}</Popup>
+        </Marker>
+      ))}
+    </>
+  );
 }
 
 function EmergencyShelteraddress() {
     // const [info, getInfo] = useState([]);
-    var informations = [add1,add2];
+    
 
     return(
         <div id="emergencyAdd">
            <ul>
-            {informations.map((information, index) => (
-                <Emergency key={index} address={information} />
+            {addObject.map((information, index) => (
+                <li key={index}>{information.name},{information.address}</li>
             ))}
            </ul>
         </div>
     )
 }
-export { EmergencyShelteraddress, mapPlacement };
+export { EmergencyShelteraddress, MapPlacement };
 

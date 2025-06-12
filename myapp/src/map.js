@@ -1,11 +1,10 @@
 import React ,{useRef, useState, useEffect} from "react";
-import { EmergencyShelteraddress, mapPlacement } from "./emergencyInfo";
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import {MapContainer, TileLayer, Marker, Popup, useMapEvent, useMap} from 'react-leaflet';
 import "leaflet/dist/leaflet.css";
 import L from 'leaflet';
-import { EmergencyShelteraddress, mapPlacement } from "./emergencyInfo";
+import { EmergencyShelteraddress, MapPlacement } from "./emergencyInfo";
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconUrl: markerIcon,
@@ -16,11 +15,11 @@ L.Icon.Default.mergeOptions({
 
 //<a href="https://www.flaticon.com/free-icons/fire" title="fire icons">Fire icons created by Freepik - Flaticon</a>
 
-const fireIcon = L.icon({
-  url: '//www.flaticon.com/free-icons/fire',
-  iconSize: []
+// const fireIcon = L.icon({
+//   url: '//www.flaticon.com/free-icons/fire',
+//   iconSize: []
 
-});
+// });
 
 
 function InitialLocation() {
@@ -61,7 +60,7 @@ function SearchInfo() {
                 return;
             }
             const searchValue = input.value;
-            const url = `http://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchValue)}`;
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchValue)}`;
             let promise = await fetch(url);
             let json = await promise.json();
             if (json && json.length > 0) {
@@ -110,7 +109,7 @@ function SimpleMap() {
         />
         <InitialLocation />
         <SearchInfo />
-        <mapPlacement/>
+        {<MapPlacement /> }
         {/* Additional map layers or components can be added here */}
       </MapContainer>
       <form id="form" style={{ marginTop: "1em" }}>
@@ -120,11 +119,11 @@ function SimpleMap() {
       <h2>Emergency Address</h2>
       <EmergencyShelteraddress />
       
-      <div id="information container">
+      {/* <div id="information container">
        <ul>
         <a></a>
        </ul>
-      </div>
+      </div> */}
 
     </div>
   );
