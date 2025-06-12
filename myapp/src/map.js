@@ -1,16 +1,17 @@
 import React ,{useRef, useState, useEffect} from "react";
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
+import iconUrl from 'leaflet/dist/images/marker-icon.png';
+import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
 import {MapContainer, TileLayer, Marker, Popup, useMapEvent, useMap} from 'react-leaflet';
 import "leaflet/dist/leaflet.css";
 import L from 'leaflet';
 import { EmergencyShelteraddress, MapPlacement } from "./emergencyInfo";
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
+  iconRetinaUrl,
+  iconUrl,
+  shadowUrl,
 });
-
 
 function InitialLocation() {
     const [position, setPostion] = useState(null);

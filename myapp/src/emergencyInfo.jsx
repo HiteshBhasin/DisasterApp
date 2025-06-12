@@ -1,6 +1,7 @@
 import {useState, useEffect} from "react";
 import L from 'leaflet';
 import { Marker, Popup} from 'react-leaflet';
+import shelterIcon from "./assets/shelter.png";
 
 const add1 = "709 Keewatin Street, Winnipeg, Manitoba";
 const add2 = "146 Selkirk Avenue, Thompson, Manitoba";
@@ -11,10 +12,11 @@ const addObject = [
 
  function MapPlacement() {
    const fireIcon = L.icon({
-     url: 'https://cdn-icons-png.flaticon.com/512/483/483361.png',
-     iconSize: [25,25],
-     iconAnchor: [12,41],
-    popupAnchor:[0,-32]
+     iconUrl: 'https://cdn-icons-png.flaticon.com/128/18/18314.png',
+     iconSize: [30,30],
+     iconAnchor: [15,30],
+    popupAnchor:[0,-30],
+
    
    }); 
    const [positions, setPosition] = useState([]);
@@ -69,11 +71,14 @@ function EmergencyShelteraddress() {
         <div id="emergencyAdd">
            <ul>
             {addObject.map((information, index) => (
-                <li key={index}>{information.name},{information.address}</li>
+                <li key={index}>
+                  <img src={shelterIcon} alt="Selter Icon" 
+                  style={{ width: '20px', height: '20px', marginRight: '8px', verticalAlign: 'middle' }} />
+                  {information.name},{information.address}</li>
             ))}
            </ul>
         </div>
     )
-}
+} // i need to style it still
 export { EmergencyShelteraddress, MapPlacement };
 
