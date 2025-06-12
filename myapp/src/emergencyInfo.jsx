@@ -73,7 +73,7 @@ function EmergencyShelteraddress() {
             {addObject.map((information, index) => (
                 <li key={index}>
                   <img src={shelterIcon} alt="Selter Icon" 
-                  style={{ width: '20px', height: '20px', marginRight: '8px', verticalAlign: 'middle' }} />
+                  style={{ width: '15px', height: '15px', marginRight: '8px', verticalAlign: 'middle' }} />
                   {information.name},{information.address}</li>
             ))}
            </ul>
