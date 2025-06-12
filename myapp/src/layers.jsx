@@ -4,7 +4,7 @@ import { Marker, Popup, useMapEvent, useMap, LayersControl, WMSTileLayer, TileLa
 
 const nasaApi = "https://firms.modaps.eosdis.nasa.gov/api/area/json/<adde6368823b1c811de264a026f39f29>/MODIS_NRT/NorthAmerica/24h";
 
-function layerReturn(params) {
+function LayerReturn(params) {
     const [fireData, getData] = useState([]);
 
     useEffect(() => {
@@ -54,4 +54,4 @@ function layerReturn(params) {
         </LayersControl.Overlay>
     );
 }
-export default layerReturn;
+export default LayerReturn;

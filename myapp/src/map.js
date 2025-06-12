@@ -1,4 +1,5 @@
 import React ,{useRef, useState, useEffect} from "react";
+import LayerReturn from "./layers";
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
@@ -98,6 +99,7 @@ function SimpleMap() {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        <LayerReturn />
         <InitialLocation />
         <SearchInfo />
         {<MapPlacement /> }
