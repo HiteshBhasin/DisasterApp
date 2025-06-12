@@ -11,7 +11,7 @@ const addObject = [
 
  function MapPlacement() {
    const fireIcon = L.icon({
-     url: 'https://www.flaticon.com/free-icons/shelter',
+     url: 'https://cdn-icons-png.flaticon.com/512/483/483361.png',
      iconSize: [25,25],
      iconAnchor: [12,41],
     popupAnchor:[0,-32]

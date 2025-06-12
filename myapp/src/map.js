@@ -11,16 +11,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-//---fire icon-----//
-
-//<a href="https://www.flaticon.com/free-icons/fire" title="fire icons">Fire icons created by Freepik - Flaticon</a>
-
-// const fireIcon = L.icon({
-//   url: '//www.flaticon.com/free-icons/fire',
-//   iconSize: []
-
-// });
-
 
 function InitialLocation() {
     const [position, setPostion] = useState(null);
@@ -119,12 +109,6 @@ function SimpleMap() {
       <h2>Emergency Address</h2>
       <EmergencyShelteraddress />
       
-      {/* <div id="information container">
-       <ul>
-        <a></a>
-       </ul>
-      </div> */}
-
     </div>
   );
 }
