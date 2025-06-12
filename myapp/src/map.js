@@ -110,6 +110,7 @@ function SimpleMap() {
       <h2>Emergency Address</h2>
       <EmergencyShelteraddress />
       
+      <></>
     </div>
   );
 }
