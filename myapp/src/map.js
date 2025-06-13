@@ -124,6 +124,7 @@ function SimpleMap() {
           justifyContent: "left",
           alignItems: "left",
           marginRight: "1000px", 
+          border: "1px solid #ccc"
         }}
       >
       <h2>Emergency Address</h2>
