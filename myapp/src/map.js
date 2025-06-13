@@ -111,12 +111,13 @@ function SimpleMap() {
         <InitialLocation />
         <SearchInfo />
         {<MapPlacement />}
-        {/* Additional map layers or components can be added here */}
       </MapContainer>
+
       <form id="form" style={{ marginTop: "1em" }}>
         <input type="text" id="text" placeholder="Search location..." />
         <button type="submit">Search</button>
       </form>
+
       <div id="information Container"
         style={{
           display: "flex",
