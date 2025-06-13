@@ -19,8 +19,9 @@ function LayerReturn() {
         async function fetchData() {
             try {
                 const data = await fetch(nasaApi);
-                console.log("FIRMS API Response Status:", data.status, data.statusText);
+                 console.log("FIRMS API Response Status:", data.status, data.statusText);
                 console.log("FIRMS API Response Headers:", data.headers);
+                console.log(data.text());
                 
                 if(!data){
                     const errorRes = await data.text();
