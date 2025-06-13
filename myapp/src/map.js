@@ -3,6 +3,7 @@ import LayerReturn from "./layers";
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
+import Resources from "./resources";
 import {MapContainer, TileLayer, Marker, Popup, useMapEvent, useMap} from 'react-leaflet';
 import "leaflet/dist/leaflet.css";
 import L from 'leaflet';
@@ -111,8 +112,9 @@ function SimpleMap() {
       </form>
       <h2>Emergency Address</h2>
       <EmergencyShelteraddress />
-      
-      <></>
+      <h2>More Resources</h2>
+      <Resources />      
+     
     </div>
   );
 }
