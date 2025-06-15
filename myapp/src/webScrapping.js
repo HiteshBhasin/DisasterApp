@@ -1,7 +1,7 @@
 import React ,{useState, useEffect} from "react";
 import puppeteer, { Page } from "puppeteer";
 const WebbData = ()=>{
-    const [data, getData] = useState(" ");
+    const [data, getData] = useState([]);
 
     useEffect(()=>
     {
@@ -12,7 +12,8 @@ const WebbData = ()=>{
             await page.goto("https://www.gov.nt.ca/en/public-safety/latest-updates",{waitUntil:"domcontentloaded"});
             const news = await page.evaluate(()=>{
 
-                const updates = 
+                const updates = document.querySelectorAll(".field-items");
+                getData(updates);
             });
         }; 
         
