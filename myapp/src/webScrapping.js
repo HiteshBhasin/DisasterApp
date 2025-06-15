@@ -15,9 +15,9 @@ const WebbData = ()=>{
                 const updates = document.querySelectorAll(".field-items");
                 getData(updates);
             });
-        }; 
+        } News(); 
         
-    });
+    },[]);
 
 
 
