@@ -1,10 +1,6 @@
-import React ,{useState, useEffect} from "react";
-import puppeteer, { Page } from "puppeteer";
-const WebbData = ()=>{
-    const [data, getData] = useState([]);
 
-    useEffect(()=>
-    {
+import puppeteer from "puppeteer";
+
         async function News() {
             const browser = await puppeteer.launch({headless:false, defaultViewport: null});
             const page = await browser.newPage();
@@ -13,12 +9,8 @@ const WebbData = ()=>{
             const news = await page.evaluate(()=>{
 
                 const updates = document.querySelectorAll(".field-items");
-                getData(updates);
+                console.log(updates);
             });
-        } News(); 
-        
-    },[]);
+        }
 
-
-
-};
+export default News;

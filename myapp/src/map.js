@@ -4,6 +4,7 @@ import iconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
 import iconUrl from "leaflet/dist/images/marker-icon.png";
 import shadowUrl from "leaflet/dist/images/marker-shadow.png";
 import Resources from "./resources";
+import News from "./webScrapping";
 import {
   MapContainer,
   TileLayer,
@@ -132,6 +133,9 @@ function SimpleMap() {
       <EmergencyShelteraddress />
       <h2>More Resources</h2>
       <Resources />
+      </div>
+      <div>
+        
       </div>
     </div>
   );
