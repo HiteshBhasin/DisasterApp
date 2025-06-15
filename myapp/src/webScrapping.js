@@ -1,16 +1,25 @@
+import React ,{useState, useEffect} from "react";
 
-import puppeteer from "puppeteer";
+const WebbData = ()=>{
+    const [data, getData] = useState(" ");
 
+    useEffect(()=>
+    {
         async function News() {
-            const browser = await puppeteer.launch({headless:false, defaultViewport: null});
-            const page = await browser.newPage();
+           try {
 
-            await page.goto("https://www.gov.nt.ca/en/public-safety/latest-updates",{waitUntil:"domcontentloaded"});
-            const news = await page.evaluate(()=>{
+            const url = "https://www.gov.nt.ca/en/public-safety/latest-updates";
+            const data = await fetch(url);
+            const jsonData = data.json();
 
-                const updates = document.querySelectorAll(".field-items");
-                console.log(updates);
-            });
-        }
+            getData(jsonData);            
+           } catch (error) {
+            console.log(error.message);
+           }
+        } News(); 
+        
+    },[]);
 
-export default News;
+
+
+};

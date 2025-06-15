@@ -135,7 +135,9 @@ function SimpleMap() {
       <Resources />
       </div>
       <div>
-        
+        <p>
+          {News}
+        </p>
       </div>
     </div>
   );
