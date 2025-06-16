@@ -2,7 +2,7 @@ import puppeteer from "puppeteer";
 
 async function WebScrapping() {
     const browser = await puppeteer.launch({
-    headless: "true", //A headless browser is essentially a browser without a graphical user interface, which allows for faster and more efficient automation.
+    headless: true, //A headless browser is essentially a browser without a graphical user interface, which allows for faster and more efficient automation.
     defaultViewport: null
 });
 
@@ -23,9 +23,13 @@ try {
     }
 });
 } catch (error) {
-    console.log(error.message);
+    if (error instanceof Error) {
+        console.log(error.message);
+    } else {
+        console.log(error);
+    }
 }
  
-
-
 }
+
+export default WebScrapping;
