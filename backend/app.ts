@@ -20,6 +20,20 @@ app.get("/home" ,(req, res)=>{
     })
 
 });
+
+app.get("/firenews", async (req,res)=>{
+
+    try {
+        const newsData = await WebScrapping();
+        res.send(newsData);
+    } catch (error) {
+        console.error("failed", error);
+        res.status(500).json({ success: false, error: "Scraping failed" });
+    }
+
+
+});
+
 app.use(express.static(path.join(__dirname, "../Client/build")));
 app.get("/*" , function (req, res){
 
