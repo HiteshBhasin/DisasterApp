@@ -8,31 +8,31 @@ import WebScrapping from './webscrapping';
 
 
 
-// app.get("/home" ,(req, res)=>{
-//     const file= path.join(__dirname, './content/about.txt')
-//     fs.readFile(file , 'utf8', (err,data) =>{
-//         if (err) {
-//             console.error('error parsing the file');
+app.get("/home" ,(req, res)=>{
+    const file= path.join(__dirname, './content/about.txt')
+    fs.readFile(file , 'utf8', (err,data) =>{
+        if (err) {
+            console.error('error parsing the file');
             
-//         } else {
-//             res.send(data)
-//         }
-//     })
+        } else {
+            res.send(data)
+        }
+    })
 
-// });
-// app.use(express.static(path.join(__dirname, "../Client/build")));
-// app.get("/*" , function (req, res){
+});
+app.use(express.static(path.join(__dirname, "../Client/build")));
+app.get("/*" , function (req, res){
 
-//     res.sendFile(
-//         path.join(__dirname, "../Client/build/index.html"),
-//         (err)=>{
-//             if(err){
-//                 res.status(500).send(err)
-//             }
-//         }
-//     );
+    res.sendFile(
+        path.join(__dirname, "../Client/build/index.html"),
+        (err)=>{
+            if(err){
+                res.status(500).send(err)
+            }
+        }
+    );
 
-// });
+});
 
 
 app.listen(port, ()=>{
