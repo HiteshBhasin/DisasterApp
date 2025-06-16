@@ -31,7 +31,6 @@ app.get("/firenews", async (req,res)=>{
         res.status(500).json({ success: false, error: "Scraping failed" });
     }
 
-
 });
 
 app.use(express.static(path.join(__dirname, "../Client/build")));

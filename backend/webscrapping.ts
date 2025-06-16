@@ -14,7 +14,7 @@ await page.goto("https://www.manitoba.ca/wildfire/news.html",
  const text: string[] = [];
 
 try {
-    const contents = await page.evaluate(()=>{
+    await page.evaluate(()=>{
     const content = document.querySelectorAll(".col-3-4");
     content.forEach((el)=>{
         text.push(el.innerHTML);
