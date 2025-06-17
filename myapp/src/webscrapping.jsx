@@ -10,7 +10,10 @@ function Updates() {
                 url="";
                 const fetchData = await fetch(url);
                 if(fetchData){
-                const jsonData = fetchData.json()}
+                const jsonData = fetchData.json();
+                console.log(jsonData);
+                getUpdatedData(jsonData);   
+            }
                 else{
                     console.error("We didnt get any Data", jsonData);
                 }
