@@ -4,7 +4,7 @@ import iconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
 import iconUrl from "leaflet/dist/images/marker-icon.png";
 import shadowUrl from "leaflet/dist/images/marker-shadow.png";
 import Resources from "./resources";
-import WebbData from "./webScrapping";
+import Updates from "./webscrapping";
 import {
   MapContainer,
   TileLayer,
@@ -135,7 +135,7 @@ function SimpleMap() {
       <Resources />
       </div>
       <div>
-      < WebbData />
+      < Updates />
       </div>
     </div>
   );
