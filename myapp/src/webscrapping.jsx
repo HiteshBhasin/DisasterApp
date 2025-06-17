@@ -38,5 +38,5 @@ function Updates() {
 
     );
 
-
+}
 export default Updates;
