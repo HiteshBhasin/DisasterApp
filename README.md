@@ -3,7 +3,7 @@ The scope for this application will be within Canada to notify users and also he
 
 # Inspiration 
 The number of wildfire evacuees in Manitoba has increased, with more likely as a handful of communities remain on alert.
-"The numbers have continued to grow. We were saying 17,000. I think we can safely assume it's north of that number now," Premier Wab Kinew told CBC Manitoba's Information Radio on Thursday morning. source:*(https://www.cbc.ca/news/canada/manitoba/wildfire-evacuee-numbers-information-1.7552948)*
+"The numbers have continued to grow. We were saying 17,000. I think we can safely assume it's north of that number now," Premier Wab Kinew. source:*(https://www.cbc.ca/news/canada/manitoba/wildfire-evacuee-numbers-information-1.7552948)*
 
 "The numbers have continued to grow. We were saying 17,000. I think we can safely assume it's north of that number now," Premier Wab Kinew told CBC Manitoba's Information Radio on Thursday morning.
 
