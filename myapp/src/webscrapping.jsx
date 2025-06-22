@@ -25,7 +25,7 @@ function Updates() {
     return(
         <div id="updates">
             
-            <ul>
+            <ul  style={{ listStyleType: "none", padding: 0 }}>
                 {Array.isArray(updatedData) && updatedData.length > 0 ? (
                     updatedData.map((item, idx) => (
                         <li key={idx}> {JSON.stringify(item)} </li>

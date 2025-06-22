@@ -17,12 +17,9 @@ const addObject = [
      iconAnchor: [15,30],
     popupAnchor:[0,-30],
 
-   
    }); 
    const [positions, setPosition] = useState([]);
   
-
-
    useEffect(() => {
     async function fetchData() {
       const addArr = [add1, add2];
@@ -64,12 +61,10 @@ const addObject = [
 }
 
 function EmergencyShelteraddress() {
-    // const [info, getInfo] = useState([]);
-    
-
+   
     return(
         <div id="emergencyAdd">
-           <ul>
+           <ul style={{ listStyleType: "none", padding: 0 }}>
             {addObject.map((information, index) => (
                 <li key={index}>
                   <img src={shelterIcon} alt="Selter Icon" 

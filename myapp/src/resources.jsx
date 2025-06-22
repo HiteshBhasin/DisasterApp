@@ -2,7 +2,7 @@ import React from "react";
 function Resources() {
     return(
         <div id="evacueesResources">
-            <ul id="resourceList">
+            <ul id="resourceList" style={{ listStyleType: "none", padding: 0 }}>
                 <li>
                     <a href="https://www.gov.mb.ca/wildfire/evacuees.html">Resources For Evacuees</a>
                 </li>

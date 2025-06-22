@@ -125,9 +125,11 @@ function SimpleMap() {
           flexDirection:"column",
           justifyContent: "left",
           alignItems: "left",
-          marginRight: "1000px", 
-          border: "1px solid #ccc"
-        }}
+          margin: "auto",
+          border: "1px solid #ccc",
+         
+        }
+      }
       >
       <h2>Emergency Address</h2>
       <EmergencyShelteraddress />
