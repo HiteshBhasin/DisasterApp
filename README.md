@@ -1,6 +1,12 @@
 # DisasterApp
 The scope for this application will be within Canada to notify users and also help governments. The application will use real time from NASA’s Firms web services to provide the most updated fire areas.
 
+# Inspiration 
+The number of wildfire evacuees in Manitoba has increased, with more likely as a handful of communities remain on alert.
+"The numbers have continued to grow. We were saying 17,000. I think we can safely assume it's north of that number now," Premier Wab Kinew told CBC Manitoba's Information Radio on Thursday morning. source:*(https://www.cbc.ca/news/canada/manitoba/wildfire-evacuee-numbers-information-1.7552948)*
+
+"The numbers have continued to grow. We were saying 17,000. I think we can safely assume it's north of that number now," Premier Wab Kinew told CBC Manitoba's Information Radio on Thursday morning.
+
 # Overview:
 Disaster Watch is a real-time mapping application that visualizes active wildfires, emergency shelter locations, and critical natural disasters on an interactive web map. Built with React and Leaflet, the app fetches live fire data from NASA FIRMS and geocodes emergency shelters using OpenStreetMap APIs. It enables users to search locations, identify threats nearby, and make informed decisions during natural disasters.
 
