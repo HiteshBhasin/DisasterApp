@@ -1,0 +1,39 @@
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class tokenizer {
+    private String token;
+    public tokenizer(char c) {
+
+    }
+    
+    public void TokenizerMethod(String file_path) throws Exception {
+        BufferedReader fileReader =  new BufferedReader(new FileReader(file_path));
+        Map <String , List<String>> tokenMap =  new HashMap<>();
+        String line = fileReader.readLine(); 
+
+        while(line!=null){
+            String [] stringArray = line.trim().split("\\s+");
+            for(String s: stringArray){
+                if (s.length()>1){
+                    for(char c : s.toCharArray()){
+                        if (Character.isDigit(c)){
+                            tokenMap.computeIfAbsent("NUMBER", k -> new ArrayList<>()).add(String.valueOf(c));
+                        } if (Character.isAlphabetic(c)){
+                             tokenMap.computeIfAbsent("IDENTIFIER", k -> new ArrayList<>()).add(String.valueOf(c));
+                        }
+                    }
+                }
+            }
+        
+        }
+
+
+
+    }
+}
