@@ -25,10 +25,15 @@ public class tokenizer {
                         if (Character.isDigit(c)){
                             tokenMap.computeIfAbsent("NUMBER", k -> new ArrayList<>()).add(String.valueOf(c));
                         } if (Character.isAlphabetic(c)){
-                             tokenMap.computeIfAbsent("IDENTIFIER", k -> new ArrayList<>()).add(String.valueOf(c));
+                            String newString="";
+                            newString+=c;
+                             tokenMap.computeIfAbsent("", k -> new ArrayList<>()).add(newString);
+                            
                         }
+                        } 
+                    } if (s.length()==1){
+                         tokenMap.computeIfAbsent("NUMBER", k -> new ArrayList<>()).add(s);
                     }
-                }
             }
         
         }
