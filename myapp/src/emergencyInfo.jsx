@@ -26,7 +26,7 @@ const addObject = [
       const markers = [];
 
       for (const add of addArr) {
-        const url = `http://nominatim.openstreetmap.org/search?format=json&q=${add}`;
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${add}`;
         try {
           const res = await fetch(url);
           const data = await res.json();
@@ -67,7 +67,7 @@ function EmergencyShelteraddress() {
            <ul style={{ listStyleType: "none", padding: 0 }}>
             {addObject.map((information, index) => (
                 <li key={index}>
-                  <img src={shelterIcon} alt="Selter Icon" 
+                  <img src={shelterIcon} alt="Shelter Icon" 
                   style={{ width: '15px', height: '15px', marginRight: '8px', verticalAlign: 'middle' }} />
                   {information.name},{information.address}</li>
             ))}

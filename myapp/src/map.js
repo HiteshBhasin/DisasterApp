@@ -7,7 +7,6 @@ import Resources from "./resources";
 import Updates from "./webscrapping";
 import {
   MapContainer,
-  TileLayer,
   Marker,
   Popup,
   useMapEvent,
@@ -104,10 +103,6 @@ function SimpleMap() {
         ref={mapRef}
         style={{ height: "50vh", width: "100vw" }}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
         <LayerReturn />
         <InitialLocation />
         <SearchInfo />
@@ -119,12 +114,12 @@ function SimpleMap() {
         <button type="submit">Search</button>
       </form>
 
-      <div id="information Container"
+      <div id="informationContainer"
         style={{
           display: "flex",
           flexDirection:"column",
-          justifyContent: "left",
-          alignItems: "left",
+          justifyContent: "flex-start",
+          alignItems: "flex-start",
           margin: "auto",
           border: "1px solid #ccc",
          

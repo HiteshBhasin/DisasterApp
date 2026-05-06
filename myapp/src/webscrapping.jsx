@@ -1,12 +1,12 @@
 import  { useState, useEffect } from "react";
 
 function Updates() {
-    const [updatedData, getUpdatedData] = useState(" ");
+    const [updatedData, getUpdatedData] = useState([]);
 
     useEffect(() => {
         async function getUpdates() {
             try {
-                const url = "https://api.example.com/updates"; // Replace with your actual API endpoint
+                const url = "/firenews";
                 const fetchData = await fetch(url);
                 if (fetchData.ok) {
                     const jsonData = await fetchData.json();

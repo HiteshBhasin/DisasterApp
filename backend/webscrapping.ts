@@ -1,33 +1,40 @@
 import puppeteer from "puppeteer";
 
-async function WebScrapping() {
+async function WebScrapping(): Promise<string[]> {
     const browser = await puppeteer.launch({
-    headless: true, //A headless browser is essentially a browser without a graphical user interface, which allows for faster and more efficient automation.
-    defaultViewport: null
-});
-
-const page = await browser.newPage();
-
-await page.goto("https://www.manitoba.ca/wildfire/news.html",
-    {waitUntil: "domcontentloaded",});
-   
- const text: string[] = [];
-
-try {
-    await page.evaluate(()=>{
-    const content = document.querySelectorAll(".col-3-4");
-    content.forEach((el)=>{
-        text.push(el.innerHTML);
+        headless: true, // A headless browser has no GUI, allowing faster automation.
+        defaultViewport: null,
     });
-});
-} catch (error) {
-    if (error instanceof Error) {
-        console.log(error.message);
-    } else {
-        console.log(error);
+
+    const page = await browser.newPage();
+
+    await page.goto("https://www.manitoba.ca/wildfire/news.html", {
+        waitUntil: "domcontentloaded",
+    });
+
+    let text: string[] = [];
+
+    try {
+        // page.evaluate runs in the browser context — capture results via return value
+        text = await page.evaluate(() => {
+            const content = document.querySelectorAll(".col-3-4");
+            const results: string[] = [];
+            content.forEach((el) => {
+                results.push(el.innerHTML);
+            });
+            return results;
+        });
+    } catch (error) {
+        if (error instanceof Error) {
+            console.log(error.message);
+        } else {
+            console.log(error);
+        }
+    } finally {
+        await browser.close();
     }
-}
- return text ;
+
+    return text;
 }
 
 export default WebScrapping;

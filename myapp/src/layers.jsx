@@ -10,8 +10,6 @@ function LayerReturn() {
          iconSize: [30,30],
          iconAnchor: [15,30],
         popupAnchor:[0,-30],
-    
-       
        }); 
     const [fireData, getData] = useState([]);
 
@@ -19,13 +17,12 @@ function LayerReturn() {
         async function fetchData() {
             try {
                 const data = await fetch(nasaApi);
-                 console.log("FIRMS API Response Status:", data.status, data.statusText);
-                console.log("FIRMS API Response Headers:", data.headers);
-                console.log(data.text());
-                
-                if(!data){
+                console.log("FIRMS API Response Status:", data.status, data.statusText);
+
+                if (!data.ok) {
                     const errorRes = await data.text();
                     console.log(`no data came through ${errorRes}`);
+                    return;
                 }
                 const jsonData = await data.json();
                 console.log(jsonData, "jsondata");
@@ -47,24 +44,27 @@ function LayerReturn() {
         fetchData();
     }, []);
 
-    return(
-
-        <LayersControl.BaseLayer name = "baseMap">
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"></TileLayer>
-        </LayersControl.BaseLayer>,
-
-        <LayersControl.Overlay name = "fires in Canada">
-            <LayerGroup>
-                {fireData.map((fire, idx)=>(
-                    <Marker key={idx} position={[fire.lat, fire.lon]} icon={fireIcon}>
-                        <Popup>
-                            Date: {fire.date}<br />
-                            Time: {fire.time}<br />
-                        </Popup>
-                    </Marker>
-                ))}
-            </LayerGroup>
-        </LayersControl.Overlay>
+    return (
+        <LayersControl position="topright">
+            <LayersControl.BaseLayer checked name="OpenStreetMap">
+                <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+            </LayersControl.BaseLayer>
+            <LayersControl.Overlay checked name="Fires in Canada">
+                <LayerGroup>
+                    {fireData.map((fire, idx)=>(
+                        <Marker key={idx} position={[fire.lat, fire.lon]} icon={fireIcon}>
+                            <Popup>
+                                Date: {fire.date}<br />
+                                Time: {fire.time}<br />
+                            </Popup>
+                        </Marker>
+                    ))}
+                </LayerGroup>
+            </LayersControl.Overlay>
+        </LayersControl>
     );
 }
 export default LayerReturn;
