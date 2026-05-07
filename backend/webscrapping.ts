@@ -17,7 +17,11 @@ async function WebScrapping(): Promise<string[]> {
     try {
         // page.evaluate runs in the browser context — capture results via return value
         text = await page.evaluate(() => {
-            const content = document.querySelectorAll(".col-3-4");
+            // Try primary selector first, fall back to broader selectors
+            let content = document.querySelectorAll(".col-3-4");
+            if (content.length === 0) content = document.querySelectorAll("main article");
+            if (content.length === 0) content = document.querySelectorAll(".content-area");
+            if (content.length === 0) content = document.querySelectorAll("main");
             const results: string[] = [];
             content.forEach((el) => {
                 results.push(el.innerHTML);

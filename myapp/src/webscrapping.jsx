@@ -65,16 +65,21 @@ function Updates() {
 
             {activeTab === "cbc" && (
                 <div className="news-content">
-                    {loadingCbc ? <p className="news-loading">Loading CBC news...</p> :
+                    {loadingCbc ? <p className="news-loading">Loading news...</p> :
                         cbcData.length > 0 ? (
-                            <ul>{cbcData.map((item, idx) => (
-                                <li key={idx}>
-                                    <a href={item.link} target="_blank" rel="noreferrer">{item.title}</a>
-                                    {item.date && <span className="news-date"> — {item.date}</span>}
-                                    {item.description && <p className="news-desc">{item.description}...</p>}
-                                </li>
-                            ))}</ul>
-                        ) : <p className="news-empty">No CBC articles found.</p>
+                            <div className="news-cards">
+                                {cbcData.map((item, idx) => (
+                                    <a key={idx} href={item.link} target="_blank" rel="noreferrer" className="news-card">
+                                        {item.image && <img src={item.image} alt={item.title} className="news-card-img" />}
+                                        <div className="news-card-body">
+                                            <div className="news-card-title">{item.title}</div>
+                                            {item.date && <div className="news-date">{new Date(item.date).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' })}</div>}
+                                            {item.description && <p className="news-desc">{item.description}</p>}
+                                        </div>
+                                    </a>
+                                ))}
+                            </div>
+                        ) : <p className="news-empty">No articles found.</p>
                     }
                 </div>
             )}

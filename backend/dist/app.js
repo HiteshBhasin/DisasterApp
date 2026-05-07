@@ -47,9 +47,14 @@ app.get("/cbcnews", async (req, res) => {
 });
 app.get("/floodevents", async (req, res) => {
     try {
-        const response = await fetch("https://eonet.gsfc.nasa.gov/api/v3/events?category=floods&status=open&limit=50");
-        const data = await response.json();
-        res.json(data.events || []);
+        const [floodsRes, stormsRes] = await Promise.all([
+            fetch("https://eonet.gsfc.nasa.gov/api/v3/events?category=floods&limit=50"),
+            fetch("https://eonet.gsfc.nasa.gov/api/v3/events?category=severeStorms&limit=30")
+        ]);
+        const floodsData = await floodsRes.json();
+        const stormsData = await stormsRes.json();
+        const combined = [...(floodsData.events || []), ...(stormsData.events || [])];
+        res.json(combined);
     }
     catch (error) {
         console.error("EONET flood fetch failed", error);

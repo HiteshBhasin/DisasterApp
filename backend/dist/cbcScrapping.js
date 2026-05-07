@@ -1,22 +1,45 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 async function CBCScrapping() {
-    const response = await fetch('https://www.cbc.ca/cmlink/rss-canada-manitoba');
-    const xml = await response.text();
-    const items = xml.match(/<item>([\s\S]*?)<\/item>/g) || [];
-    const parsed = items.map(item => {
-        const title = (item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) ||
-            item.match(/<title>(.*?)<\/title>/))?.[1]?.trim() || '';
-        const link = (item.match(/<guid[^>]*>(.*?)<\/guid>/) ||
-            item.match(/<link>(.*?)<\/link>/))?.[1]?.trim() || '';
-        const date = item.match(/<pubDate>(.*?)<\/pubDate>/)?.[1]?.trim() || '';
-        const description = (item.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/) ||
-            item.match(/<description>(.*?)<\/description>/))?.[1]?.replace(/<[^>]+>/g, '').trim().slice(0, 200) || '';
-        return { title, link, date, description };
+    const headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'application/rss+xml, application/xml, text/xml, */*',
+    };
+    const feeds = [
+        'https://globalnews.ca/winnipeg/feed/',
+        'https://globalnews.ca/canada/feed/',
+        'https://globalnews.ca/feed/',
+    ];
+    const results = await Promise.allSettled(feeds.map(url => fetch(url, { headers })));
+    const allItems = [];
+    for (const result of results) {
+        if (result.status !== 'fulfilled' || !result.value.ok)
+            continue;
+        const xml = await result.value.text();
+        const items = xml.match(/<item>([\s\S]*?)<\/item>/g) || [];
+        for (const item of items) {
+            const title = (item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) ||
+                item.match(/<title>(.*?)<\/title>/))?.[1]?.trim() || '';
+            const link = (item.match(/<link>(https?:\/\/[^<]+)<\/link>/) ||
+                item.match(/<guid[^>]*isPermaLink="true"[^>]*>(.*?)<\/guid>/) ||
+                item.match(/<guid[^>]*>(.*?)<\/guid>/))?.[1]?.trim() || '';
+            const date = item.match(/<pubDate>(.*?)<\/pubDate>/)?.[1]?.trim() || '';
+            const description = (item.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/) ||
+                item.match(/<description>(.*?)<\/description>/))?.[1]?.replace(/<[^>]+>/g, '').trim().slice(0, 220) || '';
+            const image = (item.match(/<media:thumbnail[^>]+url="([^"]+)"/) ||
+                item.match(/<enclosure[^>]+url="([^"]+)"[^>]+type="image/))?.[1]?.trim() || '';
+            if (title && link) {
+                allItems.push({ title, link, date, description, image });
+            }
+        }
+    }
+    const seen = new Set();
+    const unique = allItems.filter(item => {
+        if (seen.has(item.link))
+            return false;
+        seen.add(item.link);
+        return true;
     });
-    const keywords = ['wildfire', 'fire', 'flood', 'evacuat', 'emergency', 'disaster', 'drought'];
-    return parsed
-        .filter(item => keywords.some(k => item.title.toLowerCase().includes(k)))
-        .slice(0, 15);
+    return unique.slice(0, 20);
 }
 exports.default = CBCScrapping;
