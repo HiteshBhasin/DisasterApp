@@ -1,9 +1,13 @@
 {
+  "name": "disasterapp",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "cd myapp && npm install && npm run build && cd ../backend && npm install && npm run build",
+    "start": "cd backend && npm start"
+  },
   "dependencies": {
-
     "react-create": "^1.0.2",
-
     "react-scripts": "^5.0.1"
- 
   }
 }
+
