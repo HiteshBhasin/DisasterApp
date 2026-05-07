@@ -4,6 +4,12 @@ async function WebScrapping(): Promise<string[]> {
     const browser = await puppeteer.launch({
         headless: true,
         defaultViewport: null,
+        args: [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-gpu",
+        ],
     });
 
     const results: string[] = [];
