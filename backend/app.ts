@@ -71,6 +71,21 @@ app.get("/eonetevents", async (req, res) => {
     }
 });
 
+app.get("/firespots", async (req, res) => {
+    try {
+        const response = await fetch("https://firms.modaps.eosdis.nasa.gov/api/area/json/a1531693fe55b8fce18f80c7f1417972/MODIS_NRT/NorthAmerica/24h");
+        if (!response.ok) {
+            res.status(response.status).json({ error: "NASA FIRMS request failed" });
+            return;
+        }
+        const data = await response.json();
+        res.json(data);
+    } catch (error) {
+        console.error("NASA FIRMS fetch failed", error);
+        res.status(500).json({ error: "Failed to fetch fire data" });
+    }
+});
+
 app.use(express.static(path.join(__dirname, "../myapp/build")));
 app.get("/{*path}", function (req, res) {
     res.sendFile(

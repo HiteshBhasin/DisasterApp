@@ -44,7 +44,7 @@ function Updates() {
                     🌲 Manitoba Wildfire
                 </button>
                 <button className={`news-tab ${activeTab === "cbc" ? "active" : ""}`} onClick={() => setActiveTab("cbc")}>
-                    📰 CBC News
+                    📰 Global News
                 </button>
                 <button className={`news-tab ${activeTab === "flood" ? "active" : ""}`} onClick={() => setActiveTab("flood")}>
                     🌊 Flood Events

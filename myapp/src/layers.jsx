@@ -2,7 +2,7 @@ import {useState, useEffect} from "react";
 import L from 'leaflet';
 import { Marker, Popup, LayersControl, TileLayer, LayerGroup} from 'react-leaflet';
 
-const nasaApi = "https://firms.modaps.eosdis.nasa.gov/api/area/json/a1531693fe55b8fce18f80c7f1417972/MODIS_NRT/NorthAmerica/24h";
+const nasaApi = "/firespots";
 
 function LayerReturn() {
        const fireIcon = L.icon({

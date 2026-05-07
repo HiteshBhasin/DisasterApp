@@ -15,14 +15,14 @@
   "dependencies": {
     "cors": "^2.8.6",
     "express": "^5.1.0",
-    "nodemon": "^3.1.10",
     "puppeteer": "^24.43.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.2",
     "@types/node": "^22.15.32",
+    "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.3"
   }
 }
