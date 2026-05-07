@@ -1,52 +1,44 @@
-import puppeteer from "puppeteer";
+import * as cheerio from "cheerio";
+
+const HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+};
 
 async function WebScrapping(): Promise<string[]> {
-    const browser = await puppeteer.launch({
-        headless: true,
-        defaultViewport: null,
-        args: [
-            "--no-sandbox",
-            "--disable-setuid-sandbox",
-            "--disable-dev-shm-usage",
-            "--disable-gpu",
-        ],
-    });
-
     const results: string[] = [];
 
     try {
-        const page = await browser.newPage();
+        // Step 1: Fetch the wildfire news index page
+        const indexRes = await fetch("https://www.manitoba.ca/wildfire/news.html", { headers: HEADERS });
+        if (!indexRes.ok) throw new Error(`Index page fetch failed: ${indexRes.status}`);
+        const indexHtml = await indexRes.text();
+        const $ = cheerio.load(indexHtml);
 
-        // Step 1: Get bulletin links and banner image from the news index page
-        await page.goto("https://www.manitoba.ca/wildfire/news.html", {
-            waitUntil: "networkidle2",
+        // Get banner image and bulletin links from .col-3-4
+        const bannerImage = $(".col-3-4 img").first().attr("src") || "";
+        const fullBanner = bannerImage.startsWith("http") ? bannerImage : `https://www.manitoba.ca${bannerImage}`;
+
+        const bulletinLinks: string[] = [];
+        $(".col-3-4 a").each((_, el) => {
+            const href = $(el).attr("href") || "";
+            if (href.includes("news.gov.mb.ca")) {
+                bulletinLinks.push(href);
+            }
         });
 
-        const { bulletinLinks, bannerImage } = await page.evaluate(() => {
-            const links: string[] = [];
-            document.querySelectorAll(".col-3-4 a").forEach((a) => {
-                const href = (a as HTMLAnchorElement).href;
-                if (href && href.includes("news.gov.mb.ca")) {
-                    links.push(href);
-                }
-            });
-            const img = document.querySelector(".col-3-4 img") as HTMLImageElement | null;
-            return { bulletinLinks: links, bannerImage: img ? img.src : "" };
-        });
+        console.log(`Found ${bulletinLinks.length} bulletin links, banner: ${fullBanner}`);
 
-        console.log(`Found ${bulletinLinks.length} bulletin links, banner: ${bannerImage}`);
-
-        // Step 2: Visit each bulletin and grab actual article content
+        // Step 2: Fetch each bulletin page and extract content
         for (const link of bulletinLinks.slice(0, 5)) {
             try {
-                await page.goto(link, { waitUntil: "networkidle2" });
-                const content = await page.evaluate(() => {
-                    const el = document.querySelector(".col-3-4");
-                    return el ? el.innerHTML : "";
-                });
+                const res = await fetch(link, { headers: HEADERS });
+                if (!res.ok) continue;
+                const html = await res.text();
+                const $$ = cheerio.load(html);
+                const content = $$(".col-3-4").html();
                 if (content) {
-                    const withImage = bannerImage
-                        ? `<img src="${bannerImage}" alt="Wildfire Information" style="width:100%;max-width:700px;border-radius:8px;margin-bottom:16px;" />${content}`
+                    const withImage = fullBanner
+                        ? `<img src="${fullBanner}" alt="Wildfire Information" style="width:100%;max-width:700px;border-radius:8px;margin-bottom:16px;" />${content}`
                         : content;
                     results.push(withImage);
                 }
@@ -60,8 +52,6 @@ async function WebScrapping(): Promise<string[]> {
         } else {
             console.log(error);
         }
-    } finally {
-        await browser.close();
     }
 
     return results;
