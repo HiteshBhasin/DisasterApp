@@ -86,10 +86,14 @@ app.get("/firespots", async (req, res) => {
     }
 });
 
-app.use(express.static(path.join(__dirname, "../myapp/build")));
+const buildPath = path.join(__dirname, "../../myapp/build");
+const buildPathFallback = path.join(__dirname, "../myapp/build");
+const resolvedBuild = require('fs').existsSync(path.join(buildPath, 'index.html')) ? buildPath : buildPathFallback;
+
+app.use(express.static(resolvedBuild));
 app.get("/{*path}", function (req, res) {
     res.sendFile(
-        path.join(__dirname, "../myapp/build/index.html"),
+        path.join(resolvedBuild, "index.html"),
         (err) => {
             if (err) {
                 res.status(500).send(err);
