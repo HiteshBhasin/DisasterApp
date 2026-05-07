@@ -1,0 +1,62 @@
+HOW NEWS CARDS WERE ADDED
+=========================
+
+Three parts work together to display the news cards:
+
+─────────────────────────────────────────────────
+1. BACKEND — backend/cbcScrapping.ts
+─────────────────────────────────────────────────
+- Fetches RSS XML from 3 Global News feeds in parallel:
+    https://globalnews.ca/winnipeg/feed/
+    https://globalnews.ca/canada/feed/
+    https://globalnews.ca/feed/
+
+- Parses each <item> block and extracts:
+    title       → <title> tag
+    link        → <link> tag
+    date        → <pubDate> tag
+    description → <description> tag (stripped to 220 chars)
+    image       → <media:thumbnail url="..."> or <enclosure url="...">
+
+- Returns up to 20 deduplicated articles as JSON:
+    { title, link, date, description, image }
+
+─────────────────────────────────────────────────
+2. FRONTEND — myapp/src/webscrapping.jsx
+─────────────────────────────────────────────────
+- Fetches from the backend /cbcnews route on load
+- Maps over the array and renders one .news-card per article:
+
+    <div className="news-cards">
+      {cbcNews.map((item, idx) => (
+        <a key={idx} href={item.link} target="_blank" rel="noreferrer" className="news-card">
+          {item.image && <img src={item.image} alt={item.title} className="news-card-img" />}
+          <div className="news-card-body">
+            <div className="news-card-title">{item.title}</div>
+            {item.date && <div className="news-date">{new Date(item.date).toLocaleDateString(...)}</div>}
+            {item.description && <p className="news-desc">{item.description}</p>}
+          </div>
+        </a>
+      ))}
+    </div>
+
+─────────────────────────────────────────────────
+3. CSS — myapp/src/App.css
+─────────────────────────────────────────────────
+- .news-cards uses CSS Grid so cards wrap automatically at different screen sizes:
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+
+- .news-card is a flex column with border, rounded corners, and hover effect:
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    transition: box-shadow 0.2s, transform 0.2s;
+
+- .news-card-img fills the top of the card at a fixed height:
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+
+- .news-card-body holds the title, date, and description with padding.
