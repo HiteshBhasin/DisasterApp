@@ -1,83 +1,80 @@
-
-import express from 'express';
-import cors from 'cors';
-import fs from 'fs';
-import path from 'path';
-import WebScrapping from './webscrapping';
-import CBCScrapping from './cbcScrapping';
-
-const app = express();
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const cors_1 = __importDefault(require("cors"));
+const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
+const webscrapping_1 = __importDefault(require("./webscrapping"));
+const cbcScrapping_1 = __importDefault(require("./cbcScrapping"));
+const app = (0, express_1.default)();
 const port = process.env.PORT || 8088;
-
-app.use(cors());
-app.use(express.json());
-
+app.use((0, cors_1.default)());
+app.use(express_1.default.json());
 app.get("/home", (req, res) => {
-    const file = path.join(__dirname, './content/about.txt');
-    fs.readFile(file, 'utf8', (err, data) => {
+    const file = path_1.default.join(__dirname, './content/about.txt');
+    fs_1.default.readFile(file, 'utf8', (err, data) => {
         if (err) {
             console.error('error parsing the file');
             res.status(500).json({ error: 'Failed to read file' });
-        } else {
+        }
+        else {
             res.send(data);
         }
     });
 });
-
 app.get("/firenews", async (req, res) => {
     try {
-        const newsData = await WebScrapping();
+        const newsData = await (0, webscrapping_1.default)();
         res.send(newsData);
-    } catch (error) {
+    }
+    catch (error) {
         console.error("failed", error);
         res.status(500).json({ success: false, error: "Scraping failed" });
     }
 });
-
 app.get("/cbcnews", async (req, res) => {
     try {
-        const newsData = await CBCScrapping();
+        const newsData = await (0, cbcScrapping_1.default)();
         res.send(newsData);
-    } catch (error) {
+    }
+    catch (error) {
         console.error("CBC scrape failed", error);
         res.status(500).json({ success: false, error: "CBC scraping failed" });
     }
 });
-
 app.get("/floodevents", async (req, res) => {
     try {
         const response = await fetch("https://eonet.gsfc.nasa.gov/api/v3/events?category=floods&status=open&limit=50");
-        const data = await response.json() as { events: unknown[] };
+        const data = await response.json();
         res.json(data.events || []);
-    } catch (error) {
+    }
+    catch (error) {
         console.error("EONET flood fetch failed", error);
         res.status(500).json({ error: "Failed to fetch flood events" });
     }
 });
-
 app.get("/eonetevents", async (req, res) => {
     try {
         const response = await fetch("https://eonet.gsfc.nasa.gov/api/v3/events?status=open&limit=100");
-        const data = await response.json() as { events: unknown[] };
+        const data = await response.json();
         res.json(data.events || []);
-    } catch (error) {
+    }
+    catch (error) {
         console.error("EONET fetch failed", error);
         res.status(500).json({ error: "Failed to fetch EONET events" });
     }
 });
-
-app.use(express.static(path.join(__dirname, "../myapp/build")));
+app.use(express_1.default.static(path_1.default.join(__dirname, "../myapp/build")));
 app.get("/{*path}", function (req, res) {
-    res.sendFile(
-        path.join(__dirname, "../myapp/build/index.html"),
-        (err) => {
-            if (err) {
-                res.status(500).send(err);
-            }
+    res.sendFile(path_1.default.join(__dirname, "../myapp/build/index.html"), (err) => {
+        if (err) {
+            res.status(500).send(err);
         }
-    );
+    });
 });
-
 app.listen(port, () => {
     console.log(`server is running on ${port}`);
 });

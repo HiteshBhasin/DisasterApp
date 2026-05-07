@@ -139,6 +139,70 @@ Area
 	
 
 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CURRENT PROGRESS (As of May 2026)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tech Stack Chosen:
+   Frontend   : React (CRA), React-Leaflet, Leaflet.js
+   Backend    : Node.js + Express 5 + TypeScript (ts-node)
+   Database   : MongoDB (URL configured, not yet used)
+   Deployment : Backend serves static frontend build on port 8088
+
+Completed Features:
+   [x] Interactive map (Leaflet, OpenStreetMap tiles)
+   [x] Real-time wildfire markers from NASA FIRMS MODIS API
+   [x] Flood event markers from NASA EONET API
+   [x] Emergency shelter locations with geocoded map pins (Nominatim)
+   [x] Search location — fly-to on map via navbar search bar
+   [x] In-map legend (fire, flood, shelter, location icons)
+   [x] Layer controls (toggle fire / flood overlays)
+   [x] Manitoba wildfire news (scraped from Manitoba Gov website via Puppeteer)
+   [x] CBC News tab (RSS feed filtered by disaster keywords)
+   [x] Flood Events news tab (NASA EONET)
+   [x] Sticky navbar with branding and search
+   [x] Responsive layout — full-width map, centered content below
+   [x] Emergency Address info panel
+   [x] Resource links panel (Resources for Evacuees, FAQs, etc.)
+
+APIs Currently In Use:
+   - NASA FIRMS  : https://firms.modaps.eosdis.nasa.gov  (fire markers)
+   - NASA EONET  : https://eonet.gsfc.nasa.gov           (flood events)
+   - CBC RSS     : https://www.cbc.ca/cmlink/rss-canada-manitoba
+   - Manitoba Gov: https://www.manitoba.ca/wildfire/news.html
+   - Nominatim   : https://nominatim.openstreetmap.org   (geocoding)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+NEXT STEPS / FUTURE FEATURES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Short-Term (Next 1–2 Weeks):
+   [ ] USGS Earthquake feed — add earthquake markers (same pattern as flood/fire)
+   [ ] Environment Canada alerts banner — poll Atom feed for active weather warnings
+   [ ] Fire marker color-coding — shade by brightness/confidence from FIRMS data
+   [ ] "Near me" filter — filter markers and news within X km of user's location
+   [ ] API response caching — cache EONET/FIRMS results for 10 min to reduce latency
+
+Medium-Term (Weeks 3–5):
+   [ ] Weather overlay layer — rain/wind/storm tiles from OpenWeatherMap
+   [ ] Air quality layer — AQI data from OpenAQ or AirNow API
+   [ ] Evacuation route suggestion — OpenRouteService API from user to nearest shelter
+   [ ] Historical fire heatmap — use ModisData.csv to render past fire density
+   [ ] Dark mode toggle
+
+Longer-Term (Post-MVP):
+   [ ] MongoDB integration — store news articles and user-submitted reports
+   [ ] WebSocket real-time updates — push new events to frontend without refresh
+   [ ] Push notifications — browser Notifications API for nearby disaster alerts
+   [ ] Saved locations — bookmark locations in localStorage, alert when threatened
+   [ ] Mobile-responsive sidebar — slide-up panel for info/news on small screens
+   [ ] Predictive analytics — AI-based fire spread prediction using historical data
+   [ ] Government dashboard — live incident reporting, crowdsourced data verification
+   [ ] Infrastructure risk map — highlight hospitals, power stations under threat
+
+
+
 
 
 

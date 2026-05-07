@@ -1,42 +1,105 @@
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+
+const BASE_URL = "https://www.gov.mb.ca";
+
+function fixRelativeUrls(html) {
+    return html
+        .replace(/src="(?!http)(\.\.\/|\/)?/g, `src="${BASE_URL}/`)
+        .replace(/href="(?!http)(\.\.\/|\/)?/g, `href="${BASE_URL}/`);
+}
 
 function Updates() {
-    const [updatedData, getUpdatedData] = useState([]);
+    const [activeTab, setActiveTab] = useState("manitoba");
+    const [manitobaData, setManitobaData] = useState([]);
+    const [cbcData, setCbcData] = useState([]);
+    const [floodData, setFloodData] = useState([]);
+    const [loadingManitoba, setLoadingManitoba] = useState(true);
+    const [loadingCbc, setLoadingCbc] = useState(true);
+    const [loadingFlood, setLoadingFlood] = useState(true);
 
     useEffect(() => {
-        async function getUpdates() {
-            try {
-                const url = "/firenews";
-                const fetchData = await fetch(url);
-                if (fetchData.ok) {
-                    const jsonData = await fetchData.json();
-                    console.log(jsonData);
-                    getUpdatedData(jsonData);
-                } else {
-                    console.error("We didn't get any Data");
-                }
-            } catch (error) {
-                console.log(error.message);
-            }
-        }
-        getUpdates();
+        fetch("/firenews")
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(data => setManitobaData(data))
+            .catch(() => setManitobaData([]))
+            .finally(() => setLoadingManitoba(false));
+
+        fetch("/cbcnews")
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(data => setCbcData(data))
+            .catch(() => setCbcData([]))
+            .finally(() => setLoadingCbc(false));
+
+        fetch("/floodevents")
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(data => setFloodData(data))
+            .catch(() => setFloodData([]))
+            .finally(() => setLoadingFlood(false));
     }, []);
 
-    return(
+    return (
         <div id="updates">
-            
-            <ul  style={{ listStyleType: "none", padding: 0 }}>
-                {Array.isArray(updatedData) && updatedData.length > 0 ? (
-                    updatedData.map((item, idx) => (
-                        <li key={idx}> {JSON.stringify(item)} </li>
-                    ))
-                ) : (
-                    <li>No updates available.</li>
-                )}
-            </ul>
+            <div className="news-tabs">
+                <button className={`news-tab ${activeTab === "manitoba" ? "active" : ""}`} onClick={() => setActiveTab("manitoba")}>
+                    🌲 Manitoba Wildfire
+                </button>
+                <button className={`news-tab ${activeTab === "cbc" ? "active" : ""}`} onClick={() => setActiveTab("cbc")}>
+                    📰 CBC News
+                </button>
+                <button className={`news-tab ${activeTab === "flood" ? "active" : ""}`} onClick={() => setActiveTab("flood")}>
+                    🌊 Flood Events
+                </button>
             </div>
 
-    );
+            {activeTab === "manitoba" && (
+                <div className="news-content">
+                    {loadingManitoba ? <p className="news-loading">Loading Manitoba wildfire news...</p> :
+                        manitobaData.length > 0 ? (
+                            <ul>{manitobaData.map((item, idx) => (
+                                <li key={idx} dangerouslySetInnerHTML={{ __html: fixRelativeUrls(item) }} />
+                            ))}</ul>
+                        ) : <p className="news-empty">No updates available.</p>
+                    }
+                </div>
+            )}
 
+            {activeTab === "cbc" && (
+                <div className="news-content">
+                    {loadingCbc ? <p className="news-loading">Loading CBC news...</p> :
+                        cbcData.length > 0 ? (
+                            <ul>{cbcData.map((item, idx) => (
+                                <li key={idx}>
+                                    <a href={item.link} target="_blank" rel="noreferrer">{item.title}</a>
+                                    {item.date && <span className="news-date"> — {item.date}</span>}
+                                    {item.description && <p className="news-desc">{item.description}...</p>}
+                                </li>
+                            ))}</ul>
+                        ) : <p className="news-empty">No CBC articles found.</p>
+                    }
+                </div>
+            )}
+
+            {activeTab === "flood" && (
+                <div className="news-content">
+                    {loadingFlood ? <p className="news-loading">Loading flood events from NASA EONET...</p> :
+                        floodData.length > 0 ? (
+                            <ul>{floodData.map((event, idx) => (
+                                <li key={idx}>
+                                    <strong>🌊 {event.title}</strong>
+                                    {event.geometry?.[0]?.date && (
+                                        <span className="news-date"> — {event.geometry[0].date.slice(0, 10)}</span>
+                                    )}
+                                    {event.sources?.[0]?.url && (
+                                        <> · <a href={event.sources[0].url} target="_blank" rel="noreferrer">Source</a></>
+                                    )}
+                                </li>
+                            ))}</ul>
+                        ) : <p className="news-empty">No active flood events found.</p>
+                    }
+                </div>
+            )}
+        </div>
+    );
 }
+
 export default Updates;

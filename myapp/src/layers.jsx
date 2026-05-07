@@ -10,22 +10,24 @@ function LayerReturn() {
          iconSize: [30,30],
          iconAnchor: [15,30],
         popupAnchor:[0,-30],
-       }); 
+       });
+
+       const floodIcon = L.icon({
+         iconUrl: 'https://cdn-icons-png.flaticon.com/128/3124/3124823.png',
+         iconSize: [30,30],
+         iconAnchor: [15,30],
+         popupAnchor:[0,-30],
+       });
+
     const [fireData, getData] = useState([]);
+    const [floodData, setFloodData] = useState([]);
 
     useEffect(() => {
         async function fetchData() {
             try {
                 const data = await fetch(nasaApi);
-                console.log("FIRMS API Response Status:", data.status, data.statusText);
-
-                if (!data.ok) {
-                    const errorRes = await data.text();
-                    console.log(`no data came through ${errorRes}`);
-                    return;
-                }
+                if (!data.ok) return;
                 const jsonData = await data.json();
-                console.log(jsonData, "jsondata");
                 var newData = [];
                 if (jsonData && jsonData.length>0){
                     for (const jData of jsonData ){
@@ -38,10 +40,38 @@ function LayerReturn() {
                 }
                 getData(newData);
             } catch (error) {
-                 console.log(error.message, "data not coming");
+                 console.log(error.message, "fire data not coming");
             }
         }
+
+        async function fetchFloodData() {
+            try {
+                const res = await fetch("/floodevents");
+                if (!res.ok) return;
+                const events = await res.json();
+                const markers = [];
+                for (const event of events) {
+                    if (event.geometry && event.geometry.length > 0) {
+                        const geo = event.geometry[event.geometry.length - 1];
+                        if (geo.type === "Point") {
+                            markers.push({
+                                lat: geo.coordinates[1],
+                                lon: geo.coordinates[0],
+                                title: event.title,
+                                date: geo.date ? geo.date.slice(0, 10) : "",
+                                link: event.sources?.[0]?.url || "",
+                            });
+                        }
+                    }
+                }
+                setFloodData(markers);
+            } catch (error) {
+                console.log(error.message, "flood data not coming");
+            }
+        }
+
         fetchData();
+        fetchFloodData();
     }, []);
 
     return (
@@ -52,13 +82,27 @@ function LayerReturn() {
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
             </LayersControl.BaseLayer>
-            <LayersControl.Overlay checked name="Fires in Canada">
+            <LayersControl.Overlay checked name="🔥 Fires (MODIS)">
                 <LayerGroup>
                     {fireData.map((fire, idx)=>(
                         <Marker key={idx} position={[fire.lat, fire.lon]} icon={fireIcon}>
                             <Popup>
+                                <strong>Active Fire</strong><br />
                                 Date: {fire.date}<br />
-                                Time: {fire.time}<br />
+                                Time: {fire.time}
+                            </Popup>
+                        </Marker>
+                    ))}
+                </LayerGroup>
+            </LayersControl.Overlay>
+            <LayersControl.Overlay checked name="🌊 Flood Events (EONET)">
+                <LayerGroup>
+                    {floodData.map((flood, idx)=>(
+                        <Marker key={idx} position={[flood.lat, flood.lon]} icon={floodIcon}>
+                            <Popup>
+                                <strong>{flood.title}</strong><br />
+                                {flood.date && <>Date: {flood.date}<br /></>}
+                                {flood.link && <a href={flood.link} target="_blank" rel="noreferrer">More info</a>}
                             </Popup>
                         </Marker>
                     ))}

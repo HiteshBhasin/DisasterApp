@@ -13,10 +13,10 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "cors": "^2.8.5",
+    "cors": "^2.8.6",
     "express": "^5.1.0",
     "nodemon": "^3.1.10",
-    "puppeteer": "^24.10.1"
+    "puppeteer": "^24.43.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

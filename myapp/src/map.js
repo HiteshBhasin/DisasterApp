@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import LayerReturn from "./layers";
 import iconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
 import iconUrl from "leaflet/dist/images/marker-icon.png";
@@ -15,6 +16,47 @@ import {
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { EmergencyShelteraddress, MapPlacement } from "./emergencyInfo";
+
+function MapLegend() {
+  const map = useMap();
+  const [container] = useState(() => {
+    const div = L.DomUtil.create('div', 'leaflet-legend-control');
+    L.DomEvent.disableClickPropagation(div);
+    L.DomEvent.disableScrollPropagation(div);
+    return div;
+  });
+
+  useEffect(() => {
+    const control = L.control({ position: 'bottomleft' });
+    control.onAdd = () => container;
+    control.addTo(map);
+    return () => control.remove();
+  }, [map, container]);
+
+  return createPortal(
+    <div className="map-legend">
+      <div className="map-legend-title">Legend</div>
+      <div className="map-legend-item">
+        <img src="https://cdn-icons-png.flaticon.com/128/10760/10760625.png" alt="fire" />
+        <span>Active Fire (MODIS)</span>
+      </div>
+      <div className="map-legend-item">
+        <img src="https://cdn-icons-png.flaticon.com/128/3124/3124823.png" alt="flood" />
+        <span>Flood Event (EONET)</span>
+      </div>
+      <div className="map-legend-item">
+        <img src="https://cdn-icons-png.flaticon.com/128/18/18314.png" alt="shelter" />
+        <span>Emergency Shelter</span>
+      </div>
+      <div className="map-legend-item">
+        <img src="https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png" alt="location" style={{width:12, height:20}} />
+        <span>Your Location</span>
+      </div>
+    </div>,
+    container
+  );
+}
+
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl,
@@ -101,38 +143,34 @@ function SimpleMap() {
         center={[latitude, longitude]}
         zoom={13}
         ref={mapRef}
-        style={{ height: "50vh", width: "100vw" }}
+        style={{ height: "60vh", width: "100%" }}
       >
         <LayerReturn />
         <InitialLocation />
         <SearchInfo />
         {<MapPlacement />}
+        <MapLegend />
       </MapContainer>
 
-      <form id="form" style={{ marginTop: "1em" }}>
-        <input type="text" id="text" placeholder="Search location..." />
-        <button type="submit">Search</button>
-      </form>
+      <div className="page-content">
+        <form id="form" style={{ display: "none" }}>
+          <input type="text" id="text" />
+        </form>
+        <div id="informationContainer">
+          <div className="info-card">
+            <h2>Emergency Address</h2>
+            <EmergencyShelteraddress />
+          </div>
+          <div className="info-card">
+            <h2>More Resources</h2>
+            <Resources />
+          </div>
+        </div>
 
-      <div id="informationContainer"
-        style={{
-          display: "flex",
-          flexDirection:"column",
-          justifyContent: "flex-start",
-          alignItems: "flex-start",
-          margin: "auto",
-          border: "1px solid #ccc",
-         
-        }
-      }
-      >
-      <h2>Emergency Address</h2>
-      <EmergencyShelteraddress />
-      <h2>More Resources</h2>
-      <Resources />
-      </div>
-      <div>
-      < Updates />
+        <div id="updates">
+          <h2>Latest Wildfire News</h2>
+          <Updates />
+        </div>
       </div>
     </div>
   );
