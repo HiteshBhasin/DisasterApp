@@ -10,7 +10,6 @@ import {
   MapContainer,
   Marker,
   Popup,
-  useMapEvent,
   useMap,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -57,7 +56,7 @@ function MapLegend() {
   );
 }
 
-delete L.Icon.Default.prototype._getIconUrl;
+// delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl,
   iconUrl,
@@ -65,16 +64,35 @@ L.Icon.Default.mergeOptions({
 });
 
 function InitialLocation() {
-  const [position, setPostion] = useState(null);
-  const map = useMapEvent({
-    click() {
-      map.locate();
-    },
-    locationfound(e) {
-      setPostion(e.latlng);
+  const [position, setPosition] = useState(null);
+  const map = useMap();
+
+  useEffect(() => {
+    const handleClick = () => map.locate();
+    const handleLocationFound = (e) => {
+      setPosition(e.latlng);
       map.flyTo(e.latlng, map.getZoom());
-    },
-  });
+    };
+
+    map.on("click", handleClick);
+    map.on("locationfound", handleLocationFound);
+    return () => {
+      map.off("click", handleClick);
+      map.off("locationfound", handleLocationFound);
+    };
+  }, [map]);
+
+  useEffect(() => {
+    if (!position) return;
+    const circle = L.circle([position.lat, position.lng], {
+      radius: 10000,
+      color: "#e63946",
+      fillColor: "#e63946",
+      fillOpacity: 0.1,
+      weight: 2,
+    }).addTo(map);
+    return () => map.removeLayer(circle);
+  }, [position, map]);
 
   return position === null ? null : (
     <Marker position={position}>

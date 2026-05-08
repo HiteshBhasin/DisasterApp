@@ -72,6 +72,13 @@ function LayerReturn() {
 
         fetchData();
         fetchFloodData();
+
+        const interval = setInterval(() => {
+            fetchData();
+            fetchFloodData();
+        }, 5 * 60 * 1000); // refresh every 5 minutes
+
+        return () => clearInterval(interval);
     }, []);
 
     return (
@@ -94,6 +101,7 @@ function LayerReturn() {
                         </Marker>
                     ))}
                 </LayerGroup>
+                
             </LayersControl.Overlay>
             <LayersControl.Overlay checked name="🌊 Flood Events (EONET)">
                 <LayerGroup>
