@@ -6,8 +6,8 @@
     "start": "cd backend && npm start"
   },
   "dependencies": {
+    "leaflet.smoothpolygons": "^0.1.1",
     "react-create": "^1.0.2",
     "react-scripts": "^5.0.1"
   }
 }
-

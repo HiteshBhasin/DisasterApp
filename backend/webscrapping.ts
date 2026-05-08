@@ -16,7 +16,7 @@ async function WebScrapping(): Promise<string[]> {
 
         // Get banner image and bulletin links from .col-3-4
         const bannerImage = $(".col-3-4 img").first().attr("src") || "";
-        const fullBanner = bannerImage.startsWith("http") ? bannerImage : `https://www.manitoba.ca${bannerImage}`;
+        const fullBanner = bannerImage.startsWith("http") ? bannerImage : `https://www.gov.mb.ca/asset_library/en/wildfire/wildfire-secondary-banner-1.jpg`;
 
         const bulletinLinks: string[] = [];
         $(".col-3-4 a").each((_, el) => {
