@@ -12,6 +12,7 @@ import {
   Polyline,
   Popup,
   useMap,
+  useMapEvent,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -64,7 +65,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl,
 });
 
-function RoutingControl({ userLocation, destination }) {
+function RoutingControl({ userLocation, destination, color = "#3388ff" }) {
   const map = useMap();
   const [routePoints, setRoutePoints] = useState([]);
 
@@ -102,16 +103,17 @@ function RoutingControl({ userLocation, destination }) {
   return (
     <Polyline
       positions={routePoints}
-      pathOptions={{ color: "#3388ff", weight: 6, opacity: 0.8 }}
+      pathOptions={{ color, weight: 6, opacity: 0.8 }}
     />
   );
 }
 
-function InitialLocation({ onLocationFound }) {
+function InitialLocation({ onLocationFound, active }) {
   const [position, setPosition] = useState(null);
   const map = useMap();
 
   useEffect(() => {
+    if (!active) return;
     const handleClick = () => map.locate();
     const handleLocationFound = (e) => {
       setPosition(e.latlng);
@@ -125,7 +127,7 @@ function InitialLocation({ onLocationFound }) {
       map.off("click", handleClick);
       map.off("locationfound", handleLocationFound);
     };
-  }, [map, onLocationFound]);
+  }, [map, onLocationFound, active]);
 
   useEffect(() => {
     if (!position) return;
@@ -195,6 +197,31 @@ function SearchInfo() {
   );
 }
 
+function ThirdPersonLocation({ onLocationPicked, origin }) {
+  const personIcon = L.divIcon({
+    className: "",
+    html: `<div style="
+      width:28px;height:28px;border-radius:50% 50% 50% 0;
+      background:#f4a261;border:2px solid #fff;
+      transform:rotate(-45deg);box-shadow:0 2px 6px rgba(0,0,0,0.4)
+    "></div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 28],
+    popupAnchor: [0, -30],
+  });
+
+  useMapEvent("click", (e) => {
+    onLocationPicked(e.latlng);
+  });
+
+  if (!origin) return null;
+  return (
+    <Marker position={origin} icon={personIcon}>
+      <Popup>Person's location</Popup>
+    </Marker>
+  );
+}
+
 function nearestShelter(userLoc, shelters) {
   if (!shelters || shelters.length === 0) return null;
   return shelters.reduce((closest, shelter) => {
@@ -214,6 +241,12 @@ function SimpleMap() {
   const [shelterPositions, setShelterPositions] = useState([]);
   const [routeDestination, setRouteDestination] = useState(null);
   const cancelledRef = useRef(false);
+
+  // Third-person mode
+  const [thirdPersonMode, setThirdPersonMode] = useState(false);
+  const [thirdPersonOrigin, setThirdPersonOrigin] = useState(null);
+  const [thirdPersonDest, setThirdPersonDest] = useState(null);
+
   var latitude = 49.8951;
   var longitude = -97.1384;
 
@@ -228,15 +261,61 @@ function SimpleMap() {
     setUserLocation(null);
   };
 
+  const handleThirdPersonCancel = () => {
+    setThirdPersonOrigin(null);
+    setThirdPersonDest(null);
+  };
+
+  const toggleThirdPersonMode = () => {
+    setThirdPersonMode((prev) => {
+      if (prev) {
+        setThirdPersonOrigin(null);
+        setThirdPersonDest(null);
+      }
+      return !prev;
+    });
+  };
+
+  // GPS route: auto-route to nearest shelter when user location updates
   useEffect(() => {
     if (!userLocation || shelterPositions.length === 0 || cancelledRef.current) return;
     const nearest = nearestShelter(userLocation, shelterPositions);
     if (nearest) setRouteDestination({ lat: nearest.lat, lng: nearest.lon });
   }, [userLocation, shelterPositions]);
 
+  // Third-person route: route to nearest shelter from clicked point
+  useEffect(() => {
+    if (!thirdPersonOrigin || shelterPositions.length === 0) return;
+    const nearest = nearestShelter(thirdPersonOrigin, shelterPositions);
+    if (nearest) setThirdPersonDest({ lat: nearest.lat, lng: nearest.lon });
+  }, [thirdPersonOrigin, shelterPositions]);
+
   return (
     <div className="map" id="map">
       <div style={{ position: "relative" }}>
+        {/* Mode toggle button */}
+        <div style={{ padding: "8px 0", display: "flex", gap: "8px", alignItems: "center" }}>
+          <button
+            onClick={toggleThirdPersonMode}
+            style={{
+              padding: "6px 14px",
+              cursor: "pointer",
+              background: thirdPersonMode ? "#f4a261" : "#fff",
+              border: "2px solid " + (thirdPersonMode ? "#f4a261" : "rgba(0,0,0,0.2)"),
+              borderRadius: "4px",
+              fontWeight: "bold",
+              color: thirdPersonMode ? "#fff" : "#333",
+            }}
+          >
+            {thirdPersonMode ? "📍 Click map to place pin" : "🧭 Help Someone Else"}
+          </button>
+          {thirdPersonMode && (
+            <span style={{ fontSize: "0.85rem", color: "#666" }}>
+              Click anywhere on the map to route from that location to the nearest shelter.
+            </span>
+          )}
+        </div>
+
         <MapContainer
           center={[latitude, longitude]}
           zoom={13}
@@ -244,21 +323,38 @@ function SimpleMap() {
           style={{ height: "60vh", width: "100%" }}
         >
           <LayerReturn />
-          <InitialLocation onLocationFound={handleLocationFound} />
+          <InitialLocation onLocationFound={handleLocationFound} active={!thirdPersonMode} />
+          {thirdPersonMode && (
+            <ThirdPersonLocation
+              onLocationPicked={setThirdPersonOrigin}
+              origin={thirdPersonOrigin}
+            />
+          )}
           <SearchInfo />
           {<MapPlacement onPositionsLoaded={setShelterPositions} />}
-          {userLocation && routeDestination && (
+          {/* GPS route */}
+          {userLocation && routeDestination && !thirdPersonMode && (
             <RoutingControl userLocation={userLocation} destination={routeDestination} />
+          )}
+          {/* Third-person route */}
+          {thirdPersonOrigin && thirdPersonDest && (
+            <RoutingControl
+              userLocation={thirdPersonOrigin}
+              destination={thirdPersonDest}
+              color="#f4a261"
+            />
           )}
           <MapLegend />
         </MapContainer>
-        {routeDestination && (
+
+        {/* GPS route cancel */}
+        {routeDestination && !thirdPersonMode && (
           <button
             onClick={handleCancel}
             style={{
               position: "absolute",
-              top: "10px",
-              left: "60px",
+              top: "60px",
+              left: "10px",
               zIndex: 1000,
               padding: "6px 12px",
               cursor: "pointer",
@@ -270,6 +366,27 @@ function SimpleMap() {
             }}
           >
             ✕ Cancel Route
+          </button>
+        )}
+        {/* Third-person route cancel */}
+        {thirdPersonDest && (
+          <button
+            onClick={handleThirdPersonCancel}
+            style={{
+              position: "absolute",
+              top: "60px",
+              left: "10px",
+              zIndex: 1000,
+              padding: "6px 12px",
+              cursor: "pointer",
+              background: "#fff",
+              border: "2px solid rgba(0,0,0,0.2)",
+              borderRadius: "4px",
+              fontWeight: "bold",
+              color: "#f4a261",
+            }}
+          >
+            ✕ Clear Pin & Route
           </button>
         )}
       </div>
