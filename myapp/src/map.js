@@ -13,6 +13,8 @@ import {
   useMap,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import "leaflet-routing-machine";
+import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
 import L from "leaflet";
 import { EmergencyShelteraddress, MapPlacement } from "./emergencyInfo";
 
@@ -63,7 +65,68 @@ L.Icon.Default.mergeOptions({
   shadowUrl,
 });
 
-function InitialLocation() {
+function RoutingControl({ userLocation, destination }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!userLocation || !destination) return;
+
+    const control = L.Routing.control({
+      waypoints: [
+        L.latLng(userLocation.lat, userLocation.lng),
+        L.latLng(destination.lat, destination.lng),
+      ],
+      routeWhileDragging: false,
+      showAlternatives: false,
+      fitSelectedRoutes: true,
+      lineOptions: {
+        styles: [{ color: "#3388ff", weight: 6, opacity: 0.8 }],
+      },
+      createMarker: () => null,
+    }).addTo(map);
+
+    return () => control.remove();
+  }, [map, userLocation, destination]);
+
+  return null;
+}
+
+function CancelRouteControl({ onCancel }) {
+  const map = useMap();
+  const [container] = useState(() => {
+    const div = L.DomUtil.create("div", "leaflet-cancel-route");
+    L.DomEvent.disableClickPropagation(div);
+    L.DomEvent.disableScrollPropagation(div);
+    return div;
+  });
+
+  useEffect(() => {
+    const control = L.control({ position: "topleft" });
+    control.onAdd = () => container;
+    control.addTo(map);
+    return () => control.remove();
+  }, [map, container]);
+
+  return createPortal(
+    <button
+      onClick={onCancel}
+      style={{
+        padding: "6px 12px",
+        cursor: "pointer",
+        background: "#fff",
+        border: "2px solid rgba(0,0,0,0.2)",
+        borderRadius: "4px",
+        fontWeight: "bold",
+        color: "#e63946",
+      }}
+    >
+      ✕ Cancel Route
+    </button>,
+    container
+  );
+}
+
+function InitialLocation({ onLocationFound }) {
   const [position, setPosition] = useState(null);
   const map = useMap();
 
@@ -72,6 +135,7 @@ function InitialLocation() {
     const handleLocationFound = (e) => {
       setPosition(e.latlng);
       map.flyTo(e.latlng, map.getZoom());
+      if (onLocationFound) onLocationFound(e.latlng);
     };
 
     map.on("click", handleClick);
@@ -80,7 +144,7 @@ function InitialLocation() {
       map.off("click", handleClick);
       map.off("locationfound", handleLocationFound);
     };
-  }, [map]);
+  }, [map, onLocationFound]);
 
   useEffect(() => {
     if (!position) return;
@@ -150,10 +214,32 @@ function SearchInfo() {
   );
 }
 
+function nearestShelter(userLoc, shelters) {
+  if (!shelters || shelters.length === 0) return null;
+  return shelters.reduce((closest, shelter) => {
+    const dLat = shelter.lat - userLoc.lat;
+    const dLng = shelter.lon - userLoc.lng;
+    const dist = dLat * dLat + dLng * dLng;
+    const cLat = closest.lat - userLoc.lat;
+    const cLng = closest.lon - userLoc.lng;
+    const cDist = cLat * cLat + cLng * cLng;
+    return dist < cDist ? shelter : closest;
+  });
+}
+
 function SimpleMap() {
   const mapRef = useRef(null);
+  const [userLocation, setUserLocation] = useState(null);
+  const [shelterPositions, setShelterPositions] = useState([]);
+  const [routeDestination, setRouteDestination] = useState(null);
   var latitude = 49.8951;
   var longitude = -97.1384;
+
+  useEffect(() => {
+    if (!userLocation || shelterPositions.length === 0) return;
+    const nearest = nearestShelter(userLocation, shelterPositions);
+    if (nearest) setRouteDestination({ lat: nearest.lat, lng: nearest.lon });
+  }, [userLocation, shelterPositions]);
 
   return (
     <div className="map" id="map">
@@ -164,9 +250,15 @@ function SimpleMap() {
         style={{ height: "60vh", width: "100%" }}
       >
         <LayerReturn />
-        <InitialLocation />
+        <InitialLocation onLocationFound={setUserLocation} />
         <SearchInfo />
-        {<MapPlacement />}
+        {<MapPlacement onPositionsLoaded={setShelterPositions} />}
+        {userLocation && routeDestination && (
+          <RoutingControl userLocation={userLocation} destination={routeDestination} />
+        )}
+        {routeDestination && (
+          <CancelRouteControl onCancel={() => setRouteDestination(null)} />
+        )}
         <MapLegend />
       </MapContainer>
 
