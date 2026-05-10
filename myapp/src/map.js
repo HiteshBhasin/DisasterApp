@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from "react";
+import React, { useRef, useState, useEffect, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import LayerReturn from "./layers";
 import iconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
@@ -12,7 +12,6 @@ import {
   Polyline,
   Popup,
   useMap,
-  useMapEvent,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -266,21 +265,28 @@ function SearchInfo() {
 }
 
 function ThirdPersonLocation({ onLocationPicked, origin }) {
-  const personIcon = L.divIcon({
+  const map = useMap();
+  const onLocationPickedRef = useRef(onLocationPicked);
+
+  useEffect(() => {
+    onLocationPickedRef.current = onLocationPicked;
+  }, [onLocationPicked]);
+
+  const personIcon = useMemo(() => L.divIcon({
     className: "",
-    html: `<div style="
-      width:28px;height:28px;border-radius:50% 50% 50% 0;
-      background:#f4a261;border:2px solid #fff;
-      transform:rotate(-45deg);box-shadow:0 2px 6px rgba(0,0,0,0.4)
-    "></div>`,
+    html: '<div style="width:28px;height:28px;border-radius:50% 50% 50% 0;background:#f4a261;border:2px solid #fff;transform:rotate(-45deg);box-shadow:0 2px 6px rgba(0,0,0,0.4)"></div>',
     iconSize: [28, 28],
     iconAnchor: [14, 28],
     popupAnchor: [0, -30],
-  });
+  }), []);
 
-  useMapEvent("click", (e) => {
-    onLocationPicked(e.latlng);
-  });
+  useEffect(() => {
+    const handleClick = (e) => {
+      onLocationPickedRef.current(e.latlng);
+    };
+    map.on("click", handleClick);
+    return () => map.off("click", handleClick);
+  }, [map]);
 
   if (!origin) return null;
   return (
