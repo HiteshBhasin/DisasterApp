@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import LayerReturn from "./layers";
 import iconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
@@ -9,12 +9,11 @@ import Updates from "./webscrapping";
 import {
   MapContainer,
   Marker,
+  Polyline,
   Popup,
   useMap,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import "leaflet-routing-machine";
-import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
 import L from "leaflet";
 import { EmergencyShelteraddress, MapPlacement } from "./emergencyInfo";
 
@@ -67,74 +66,44 @@ L.Icon.Default.mergeOptions({
 
 function RoutingControl({ userLocation, destination }) {
   const map = useMap();
-  const controlRef = useRef(null);
+  const [routePoints, setRoutePoints] = useState([]);
 
   useEffect(() => {
-    if (!userLocation || !destination) return;
+    if (!userLocation || !destination) {
+      setRoutePoints([]);
+      return;
+    }
 
-    const control = L.Routing.control({
-      waypoints: [
-        L.latLng(userLocation.lat, userLocation.lng),
-        L.latLng(destination.lat, destination.lng),
-      ],
-      routeWhileDragging: false,
-      showAlternatives: false,
-      fitSelectedRoutes: true,
-      lineOptions: {
-        styles: [{ color: "#3388ff", weight: 6, opacity: 0.8 }],
-      },
-      createMarker: () => null,
-    }).addTo(map);
-    controlRef.current = control;
+    let cancelled = false;
+    const url = `https://router.project-osrm.org/route/v1/driving/${userLocation.lng},${userLocation.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson`;
+
+    fetch(url)
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return;
+        if (data.routes && data.routes.length > 0) {
+          const coords = data.routes[0].geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+          setRoutePoints(coords);
+          if (coords.length > 0) {
+            map.fitBounds(L.latLngBounds(coords), { padding: [50, 50] });
+          }
+        }
+      })
+      .catch((err) => console.error("Routing error:", err));
 
     return () => {
-      if (controlRef.current) {
-        try {
-          controlRef.current.setWaypoints([]);
-          map.removeControl(controlRef.current);
-        } catch (e) {
-          // ignore cleanup errors
-        }
-        controlRef.current = null;
-      }
+      cancelled = true;
+      setRoutePoints([]);
     };
   }, [map, userLocation, destination]);
 
-  return null;
-}
+  if (routePoints.length === 0) return null;
 
-function CancelRouteControl({ onCancel }) {
-  const map = useMap();
-  const [container] = useState(() => {
-    const div = L.DomUtil.create("div", "leaflet-cancel-route");
-    L.DomEvent.disableClickPropagation(div);
-    L.DomEvent.disableScrollPropagation(div);
-    return div;
-  });
-
-  useEffect(() => {
-    const control = L.control({ position: "topleft" });
-    control.onAdd = () => container;
-    control.addTo(map);
-    return () => control.remove();
-  }, [map, container]);
-
-  return createPortal(
-    <button
-      onClick={onCancel}
-      style={{
-        padding: "6px 12px",
-        cursor: "pointer",
-        background: "#fff",
-        border: "2px solid rgba(0,0,0,0.2)",
-        borderRadius: "4px",
-        fontWeight: "bold",
-        color: "#e63946",
-      }}
-    >
-      ✕ Cancel Route
-    </button>,
-    container
+  return (
+    <Polyline
+      positions={routePoints}
+      pathOptions={{ color: "#3388ff", weight: 6, opacity: 0.8 }}
+    />
   );
 }
 
@@ -244,35 +213,66 @@ function SimpleMap() {
   const [userLocation, setUserLocation] = useState(null);
   const [shelterPositions, setShelterPositions] = useState([]);
   const [routeDestination, setRouteDestination] = useState(null);
+  const cancelledRef = useRef(false);
   var latitude = 49.8951;
   var longitude = -97.1384;
 
+  const handleLocationFound = useCallback((latlng) => {
+    cancelledRef.current = false;
+    setUserLocation(latlng);
+  }, []);
+
+  const handleCancel = () => {
+    cancelledRef.current = true;
+    setRouteDestination(null);
+    setUserLocation(null);
+  };
+
   useEffect(() => {
-    if (!userLocation || shelterPositions.length === 0) return;
+    if (!userLocation || shelterPositions.length === 0 || cancelledRef.current) return;
     const nearest = nearestShelter(userLocation, shelterPositions);
     if (nearest) setRouteDestination({ lat: nearest.lat, lng: nearest.lon });
   }, [userLocation, shelterPositions]);
 
   return (
     <div className="map" id="map">
-      <MapContainer
-        center={[latitude, longitude]}
-        zoom={13}
-        ref={mapRef}
-        style={{ height: "60vh", width: "100%" }}
-      >
-        <LayerReturn />
-        <InitialLocation onLocationFound={setUserLocation} />
-        <SearchInfo />
-        {<MapPlacement onPositionsLoaded={setShelterPositions} />}
-        {userLocation && routeDestination && (
-          <RoutingControl userLocation={userLocation} destination={routeDestination} />
-        )}
+      <div style={{ position: "relative" }}>
+        <MapContainer
+          center={[latitude, longitude]}
+          zoom={13}
+          ref={mapRef}
+          style={{ height: "60vh", width: "100%" }}
+        >
+          <LayerReturn />
+          <InitialLocation onLocationFound={handleLocationFound} />
+          <SearchInfo />
+          {<MapPlacement onPositionsLoaded={setShelterPositions} />}
+          {userLocation && routeDestination && (
+            <RoutingControl userLocation={userLocation} destination={routeDestination} />
+          )}
+          <MapLegend />
+        </MapContainer>
         {routeDestination && (
-          <CancelRouteControl onCancel={() => { setRouteDestination(null); setUserLocation(null); }} />
+          <button
+            onClick={handleCancel}
+            style={{
+              position: "absolute",
+              top: "10px",
+              left: "60px",
+              zIndex: 1000,
+              padding: "6px 12px",
+              cursor: "pointer",
+              background: "#fff",
+              border: "2px solid rgba(0,0,0,0.2)",
+              borderRadius: "4px",
+              fontWeight: "bold",
+              color: "#e63946",
+            }}
+          >
+            ✕ Cancel Route
+          </button>
         )}
-        <MapLegend />
-      </MapContainer>
+      </div>
 
       <div className="page-content">
         <form id="form" style={{ display: "none" }}>
