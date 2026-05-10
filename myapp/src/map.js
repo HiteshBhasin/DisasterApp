@@ -65,18 +65,19 @@ L.Icon.Default.mergeOptions({
   shadowUrl,
 });
 
-function RoutingControl({ userLocation, destination, color = "#3388ff" }) {
+function RoutingControl({ userLocation, destination, color = "#3388ff", onStepsFound }) {
   const map = useMap();
   const [routePoints, setRoutePoints] = useState([]);
 
   useEffect(() => {
     if (!userLocation || !destination) {
       setRoutePoints([]);
+      if (onStepsFound) onStepsFound([]);
       return;
     }
 
     let cancelled = false;
-    const url = `https://router.project-osrm.org/route/v1/driving/${userLocation.lng},${userLocation.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson`;
+    const url = `https://router.project-osrm.org/route/v1/driving/${userLocation.lng},${userLocation.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson&steps=true`;
 
     fetch(url)
       .then((res) => res.json())
@@ -88,6 +89,10 @@ function RoutingControl({ userLocation, destination, color = "#3388ff" }) {
           if (coords.length > 0) {
             map.fitBounds(L.latLngBounds(coords), { padding: [50, 50] });
           }
+          if (onStepsFound) {
+            const steps = data.routes[0].legs.flatMap((leg) => leg.steps);
+            onStepsFound(steps);
+          }
         }
       })
       .catch((err) => console.error("Routing error:", err));
@@ -95,6 +100,7 @@ function RoutingControl({ userLocation, destination, color = "#3388ff" }) {
     return () => {
       cancelled = true;
       setRoutePoints([]);
+      if (onStepsFound) onStepsFound([]);
     };
   }, [map, userLocation, destination]);
 
@@ -105,6 +111,68 @@ function RoutingControl({ userLocation, destination, color = "#3388ff" }) {
       positions={routePoints}
       pathOptions={{ color, weight: 6, opacity: 0.8 }}
     />
+  );
+}
+
+const MANEUVER_ICONS = {
+  turn: { left: "↰", right: "↱", "slight left": "↖", "slight right": "↗", "sharp left": "⬅", "sharp right": "➡", uturn: "↩" },
+  depart: "🚦",
+  arrive: "🏁",
+  merge: "⤵",
+  "on ramp": "↗",
+  "off ramp": "↙",
+  fork: "⑂",
+  roundabout: "🔄",
+  rotary: "🔄",
+  default: "•",
+};
+
+function getManeuverIcon(step) {
+  const { type, modifier } = step.maneuver;
+  if (type === "turn" && MANEUVER_ICONS.turn[modifier]) return MANEUVER_ICONS.turn[modifier];
+  return MANEUVER_ICONS[type] || MANEUVER_ICONS.default;
+}
+
+function formatDist(meters) {
+  if (meters >= 1000) return (meters / 1000).toFixed(1) + " km";
+  return Math.round(meters) + " m";
+}
+
+function DirectionsPanel({ steps, color = "#3388ff", label = "Your Route" }) {
+  if (!steps || steps.length === 0) return null;
+
+  const totalDist = steps.reduce((sum, s) => sum + s.distance, 0);
+  const totalTime = steps.reduce((sum, s) => sum + s.duration, 0);
+  const mins = Math.round(totalTime / 60);
+
+  return (
+    <div style={{
+      border: `2px solid ${color}`,
+      borderRadius: "8px",
+      margin: "12px 0",
+      overflow: "hidden",
+      fontFamily: "sans-serif",
+    }}>
+      <div style={{ background: color, color: "#fff", padding: "8px 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <strong>{label}</strong>
+        <span style={{ fontSize: "0.85rem" }}>{formatDist(totalDist)} · ~{mins} min</span>
+      </div>
+      <ol style={{ margin: 0, padding: "8px 8px 8px 32px", maxHeight: "220px", overflowY: "auto", background: "#fafafa" }}>
+        {steps.map((step, i) => (
+          <li key={i} style={{ padding: "5px 0", borderBottom: "1px solid #eee", fontSize: "0.9rem", display: "flex", gap: "8px", alignItems: "baseline" }}>
+            <span style={{ fontSize: "1.1rem", minWidth: "20px" }}>{getManeuverIcon(step)}</span>
+            <span>
+              {step.maneuver.instruction
+                ? step.maneuver.instruction
+                : `${step.maneuver.type}${step.maneuver.modifier ? " " + step.maneuver.modifier : ""}${step.name ? " onto " + step.name : ""}`}
+              {step.distance > 0 && (
+                <span style={{ color: "#888", marginLeft: "6px", fontSize: "0.8rem" }}>({formatDist(step.distance)})</span>
+              )}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }
 
@@ -246,6 +314,8 @@ function SimpleMap() {
   const [thirdPersonMode, setThirdPersonMode] = useState(false);
   const [thirdPersonOrigin, setThirdPersonOrigin] = useState(null);
   const [thirdPersonDest, setThirdPersonDest] = useState(null);
+  const [routeSteps, setRouteSteps] = useState([]);
+  const [thirdPersonSteps, setThirdPersonSteps] = useState([]);
 
   var latitude = 49.8951;
   var longitude = -97.1384;
@@ -259,11 +329,13 @@ function SimpleMap() {
     cancelledRef.current = true;
     setRouteDestination(null);
     setUserLocation(null);
+    setRouteSteps([]);
   };
 
   const handleThirdPersonCancel = () => {
     setThirdPersonOrigin(null);
     setThirdPersonDest(null);
+    setThirdPersonSteps([]);
   };
 
   const toggleThirdPersonMode = () => {
@@ -334,7 +406,7 @@ function SimpleMap() {
           {<MapPlacement onPositionsLoaded={setShelterPositions} />}
           {/* GPS route */}
           {userLocation && routeDestination && !thirdPersonMode && (
-            <RoutingControl userLocation={userLocation} destination={routeDestination} />
+            <RoutingControl userLocation={userLocation} destination={routeDestination} onStepsFound={setRouteSteps} />
           )}
           {/* Third-person route */}
           {thirdPersonOrigin && thirdPersonDest && (
@@ -342,6 +414,7 @@ function SimpleMap() {
               userLocation={thirdPersonOrigin}
               destination={thirdPersonDest}
               color="#f4a261"
+              onStepsFound={setThirdPersonSteps}
             />
           )}
           <MapLegend />
@@ -390,6 +463,9 @@ function SimpleMap() {
           </button>
         )}
       </div>
+
+      <DirectionsPanel steps={routeSteps} color="#3388ff" label="Your Route to Nearest Shelter" />
+      <DirectionsPanel steps={thirdPersonSteps} color="#f4a261" label="Route for Person at Pin" />
 
       <div className="page-content">
         <form id="form" style={{ display: "none" }}>
