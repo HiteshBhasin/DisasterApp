@@ -244,20 +244,14 @@ function SimpleMap() {
   const [userLocation, setUserLocation] = useState(null);
   const [shelterPositions, setShelterPositions] = useState([]);
   const [routeDestination, setRouteDestination] = useState(null);
-  const [routeCancelled, setRouteCancelled] = useState(false);
   var latitude = 49.8951;
   var longitude = -97.1384;
 
-  const handleLocationFound = (latlng) => {
-    setRouteCancelled(false);
-    setUserLocation(latlng);
-  };
-
   useEffect(() => {
-    if (!userLocation || shelterPositions.length === 0 || routeCancelled) return;
+    if (!userLocation || shelterPositions.length === 0) return;
     const nearest = nearestShelter(userLocation, shelterPositions);
     if (nearest) setRouteDestination({ lat: nearest.lat, lng: nearest.lon });
-  }, [userLocation, shelterPositions, routeCancelled]);
+  }, [userLocation, shelterPositions]);
 
   return (
     <div className="map" id="map">
@@ -268,14 +262,14 @@ function SimpleMap() {
         style={{ height: "60vh", width: "100%" }}
       >
         <LayerReturn />
-        <InitialLocation onLocationFound={handleLocationFound} />
+        <InitialLocation onLocationFound={setUserLocation} />
         <SearchInfo />
         {<MapPlacement onPositionsLoaded={setShelterPositions} />}
         {userLocation && routeDestination && (
           <RoutingControl userLocation={userLocation} destination={routeDestination} />
         )}
         {routeDestination && (
-          <CancelRouteControl onCancel={() => { setRouteDestination(null); setRouteCancelled(true); }} />
+          <CancelRouteControl onCancel={() => { setRouteDestination(null); setUserLocation(null); }} />
         )}
         <MapLegend />
       </MapContainer>
