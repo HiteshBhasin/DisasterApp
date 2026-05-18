@@ -87,13 +87,25 @@ app.get("/firespots", async (req, res) => {
 });
 app.get("/firespotsArcGIS", async (req, res) => {
     try {
-        const response = await fetch("https://services.arcgis.com/txWDfZ2LIgzmw5Ts/arcgis/rest/services/cwfis_active_fires_updated_view/FeatureServer/0");
+        const url = "https://services.arcgis.com/txWDfZ2LIgzmw5Ts/arcgis/rest/services/cwfis_active_fires_updated_view/FeatureServer/0/query?where=1%3D1&outFields=lat%2Clon%2Cfirename%2Cstartdate%2Cstage_of_control%2Chectares&returnGeometry=false&f=json";
+        const response = await fetch(url);
         if (!response.ok) {
             res.status(response.status).json({ error: "ArcGIS request failed" });
             return;
         }
-        const data = await response.json();
-        res.json(data);
+        const data = await response.json() as { features?: { attributes: { lat: number | null, lon: number | null, firename: string | null, startdate: string | null, stage_of_control: string | null, hectares: number | null } }[] };
+        const normalized = (data.features || [])
+            .filter(f => f.attributes.lat != null && f.attributes.lon != null)
+            .map(f => ({
+                latitude: f.attributes.lat,
+                longitude: f.attributes.lon,
+                acq_date: f.attributes.startdate || "",
+                acq_time: "",
+                firename: f.attributes.firename || "",
+                stage_of_control: f.attributes.stage_of_control || "",
+                hectares: f.attributes.hectares,
+            }));
+        res.json(normalized);
     } catch (error) {
         console.error("ArcGIS fetch failed", error);
         res.status(500).json({ error: "Failed to fetch fire data" });

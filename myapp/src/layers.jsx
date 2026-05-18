@@ -56,8 +56,10 @@ function LayerReturn() {
                         var lat = parseFloat(jData.latitude);
                         var lon = parseFloat(jData.longitude);
                         var date = jData.acq_date;
-                        var time = jData.acq_time;
-                        newData.push({lat, lon, date:date, time:time});
+                        var firename = jData.firename;
+                        var stage_of_control = jData.stage_of_control;
+                        var hectares = jData.hectares;
+                        newData.push({lat, lon, date, firename, stage_of_control, hectares});
                     }
                 }
                 setArcGisData(newData);
@@ -144,9 +146,10 @@ function LayerReturn() {
                     {arcGisData.map((fire, idx)=>(
                         <Marker key={idx} position={[fire.lat, fire.lon]} icon={fireIcon}>
                             <Popup>
-                                <strong>Active Fire (ArcGIS)</strong><br />
-                                Date: {fire.date}<br />
-                                Time: {fire.time}
+                                <strong>{fire.firename || "Active Fire (ArcGIS)"}</strong><br />
+                                {fire.date && <>Start Date: {fire.date}<br /></>}
+                                {fire.stage_of_control && <>Stage: {fire.stage_of_control}<br /></>}
+                                {fire.hectares != null && <>Size: {fire.hectares} ha</>}
                             </Popup>
                         </Marker>
                     ))}
