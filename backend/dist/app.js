@@ -72,9 +72,27 @@ app.get("/eonetevents", async (req, res) => {
         res.status(500).json({ error: "Failed to fetch EONET events" });
     }
 });
-app.use(express_1.default.static(path_1.default.join(__dirname, "../myapp/build")));
+app.get("/firespots", async (req, res) => {
+    try {
+        const response = await fetch("https://firms.modaps.eosdis.nasa.gov/api/area/json/a1531693fe55b8fce18f80c7f1417972/MODIS_NRT/NorthAmerica/24h");
+        if (!response.ok) {
+            res.status(response.status).json({ error: "NASA FIRMS request failed" });
+            return;
+        }
+        const data = await response.json();
+        res.json(data);
+    }
+    catch (error) {
+        console.error("NASA FIRMS fetch failed", error);
+        res.status(500).json({ error: "Failed to fetch fire data" });
+    }
+});
+const buildPath = path_1.default.join(__dirname, "../../myapp/build");
+const buildPathFallback = path_1.default.join(__dirname, "../myapp/build");
+const resolvedBuild = require('fs').existsSync(path_1.default.join(buildPath, 'index.html')) ? buildPath : buildPathFallback;
+app.use(express_1.default.static(resolvedBuild));
 app.get("/{*path}", function (req, res) {
-    res.sendFile(path_1.default.join(__dirname, "../myapp/build/index.html"), (err) => {
+    res.sendFile(path_1.default.join(resolvedBuild, "index.html"), (err) => {
         if (err) {
             res.status(500).send(err);
         }

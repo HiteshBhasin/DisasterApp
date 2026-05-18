@@ -35,6 +35,12 @@ function Updates() {
             .then(data => setFloodData(data))
             .catch(() => setFloodData([]))
             .finally(() => setLoadingFlood(false));
+
+        fetch("/firespotsArcGIS")
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(data => setFloodData(data))
+            .catch(() => setFloodData([]))
+            .finally(() => setLoadingFlood(false));
     }, []);
 
     return (

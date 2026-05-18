@@ -6,6 +6,7 @@ import iconUrl from "leaflet/dist/images/marker-icon.png";
 import shadowUrl from "leaflet/dist/images/marker-shadow.png";
 import Resources from "./resources";
 import Updates from "./webscrapping";
+
 import {
   MapContainer,
   Marker,

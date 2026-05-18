@@ -85,7 +85,20 @@ app.get("/firespots", async (req, res) => {
         res.status(500).json({ error: "Failed to fetch fire data" });
     }
 });
-
+app.get("/firespotsArcGIS", async (req, res) => {
+    try {
+        const response = await fetch("https://services.arcgis.com/txWDfZ2LIgzmw5Ts/arcgis/rest/services/cwfis_active_fires_updated_view/FeatureServer/0");
+        if (!response.ok) {
+            res.status(response.status).json({ error: "ArcGIS request failed" });
+            return;
+        }
+        const data = await response.json();
+        res.json(data);
+    } catch (error) {
+        console.error("ArcGIS fetch failed", error);
+        res.status(500).json({ error: "Failed to fetch fire data" });
+    }
+});
 const buildPath = path.join(__dirname, "../../myapp/build");
 const buildPathFallback = path.join(__dirname, "../myapp/build");
 const resolvedBuild = require('fs').existsSync(path.join(buildPath, 'index.html')) ? buildPath : buildPathFallback;
