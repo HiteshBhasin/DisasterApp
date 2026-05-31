@@ -1,36 +1,82 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
-const puppeteer_1 = __importDefault(require("puppeteer"));
+const cheerio = __importStar(require("cheerio"));
+const HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+};
 async function WebScrapping() {
-    const browser = await puppeteer_1.default.launch({
-        headless: true, // A headless browser has no GUI, allowing faster automation.
-        defaultViewport: null,
-    });
-    const page = await browser.newPage();
-    await page.goto("https://www.manitoba.ca/wildfire/news.html", {
-        waitUntil: "domcontentloaded",
-    });
-    let text = [];
+    const results = [];
     try {
-        // page.evaluate runs in the browser context — capture results via return value
-        text = await page.evaluate(() => {
-            // Try primary selector first, fall back to broader selectors
-            let content = document.querySelectorAll(".col-3-4");
-            if (content.length === 0)
-                content = document.querySelectorAll("main article");
-            if (content.length === 0)
-                content = document.querySelectorAll(".content-area");
-            if (content.length === 0)
-                content = document.querySelectorAll("main");
-            const results = [];
-            content.forEach((el) => {
-                results.push(el.innerHTML);
-            });
-            return results;
+        // Step 1: Fetch the wildfire news index page
+        const indexRes = await fetch("https://www.manitoba.ca/wildfire/news.html", { headers: HEADERS });
+        if (!indexRes.ok)
+            throw new Error(`Index page fetch failed: ${indexRes.status}`);
+        const indexHtml = await indexRes.text();
+        const $ = cheerio.load(indexHtml);
+        // Get banner image and bulletin links from .col-3-4
+        const bannerImage = $(".col-3-4 img").first().attr("src") || "";
+        const fullBanner = bannerImage.startsWith("http") ? bannerImage : `https://www.gov.mb.ca/asset_library/en/wildfire/wildfire-secondary-banner-1.jpg`;
+        const bulletinLinks = [];
+        $(".col-3-4 a").each((_, el) => {
+            const href = $(el).attr("href") || "";
+            if (href.includes("news.gov.mb.ca")) {
+                bulletinLinks.push(href);
+            }
         });
+        console.log(`Found ${bulletinLinks.length} bulletin links, banner: ${fullBanner}`);
+        // Step 2: Fetch each bulletin page and extract content
+        for (const link of bulletinLinks.slice(0, 5)) {
+            try {
+                const res = await fetch(link, { headers: HEADERS });
+                if (!res.ok)
+                    continue;
+                const html = await res.text();
+                const $$ = cheerio.load(html);
+                const content = $$(".col-3-4").html();
+                if (content) {
+                    const withImage = fullBanner
+                        ? `<img src="${fullBanner}" alt="Wildfire Information" style="width:100%;max-width:700px;border-radius:8px;margin-bottom:16px;" />${content}`
+                        : content;
+                    results.push(withImage);
+                }
+            }
+            catch (err) {
+                console.log(`Failed to fetch ${link}:`, err);
+            }
+        }
     }
     catch (error) {
         if (error instanceof Error) {
@@ -40,9 +86,6 @@ async function WebScrapping() {
             console.log(error);
         }
     }
-    finally {
-        await browser.close();
-    }
-    return text;
+    return results;
 }
 exports.default = WebScrapping;

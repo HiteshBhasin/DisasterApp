@@ -10,7 +10,7 @@ const addObject = [
   { name: "Burntwood Hotel", address: add2 }
 ];
 
- function MapPlacement() {
+ function MapPlacement({ onPositionsLoaded }) {
    const fireIcon = L.icon({
      iconUrl: 'https://cdn-icons-png.flaticon.com/128/18/18314.png',
      iconSize: [30,30],
@@ -44,6 +44,7 @@ const addObject = [
       }
 
       setPosition(markers);
+      if (onPositionsLoaded) onPositionsLoaded(markers);
     }
 
     fetchData();

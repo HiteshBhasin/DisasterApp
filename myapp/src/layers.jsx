@@ -3,6 +3,7 @@ import L from 'leaflet';
 import { Marker, Popup, LayersControl, TileLayer, LayerGroup} from 'react-leaflet';
 
 const nasaApi = "/firespots";
+const firespotsArcGIS = "/firespotsArcGIS";
 
 function LayerReturn() {
        const fireIcon = L.icon({
@@ -21,7 +22,8 @@ function LayerReturn() {
 
     const [fireData, getData] = useState([]);
     const [floodData, setFloodData] = useState([]);
-
+    const [arcGisData, setArcGisData] = useState([]);
+    
     useEffect(() => {
         async function fetchData() {
             try {
@@ -43,7 +45,28 @@ function LayerReturn() {
                  console.log(error.message, "fire data not coming");
             }
         }
-
+        async function fetchArgisData() {
+            try {
+                const data = await fetch(firespotsArcGIS);
+                if (!data.ok) return;
+                const jsonData = await data.json();
+                var newData = [];
+                if (jsonData && jsonData.length>0){
+                    for (const jData of jsonData ){
+                        var lat = parseFloat(jData.latitude);
+                        var lon = parseFloat(jData.longitude);
+                        var date = jData.acq_date;
+                        var firename = jData.firename;
+                        var stage_of_control = jData.stage_of_control;
+                        var hectares = jData.hectares;
+                        newData.push({lat, lon, date, firename, stage_of_control, hectares});
+                    }
+                }
+                setArcGisData(newData);
+            } catch (error) {
+                 console.log(error.message, "arcgis fire data not coming");
+            }
+        }
         async function fetchFloodData() {
             try {
                 const res = await fetch("/floodevents");
@@ -72,10 +95,12 @@ function LayerReturn() {
 
         fetchData();
         fetchFloodData();
+        fetchArgisData();
 
         const interval = setInterval(() => {
             fetchData();
             fetchFloodData();
+            fetchArgisData();
         }, 5 * 60 * 1000); // refresh every 5 minutes
 
         return () => clearInterval(interval);
@@ -111,6 +136,20 @@ function LayerReturn() {
                                 <strong>{flood.title}</strong><br />
                                 {flood.date && <>Date: {flood.date}<br /></>}
                                 {flood.link && <a href={flood.link} target="_blank" rel="noreferrer">More info</a>}
+                            </Popup>
+                        </Marker>
+                    ))}
+                </LayerGroup>
+            </LayersControl.Overlay>
+            <LayersControl.Overlay checked name="🔥 Fires (ArcGIS)">
+                <LayerGroup>
+                    {arcGisData.map((fire, idx)=>(
+                        <Marker key={idx} position={[fire.lat, fire.lon]} icon={fireIcon}>
+                            <Popup>
+                                <strong>{fire.firename || "Active Fire (ArcGIS)"}</strong><br />
+                                {fire.date && <>Start Date: {fire.date}<br /></>}
+                                {fire.stage_of_control && <>Stage: {fire.stage_of_control}<br /></>}
+                                {fire.hectares != null && <>Size: {fire.hectares} ha</>}
                             </Popup>
                         </Marker>
                     ))}
