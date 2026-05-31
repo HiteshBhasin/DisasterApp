@@ -51,7 +51,9 @@ app.get("/floodevents", async (req, res) => {
             fetch("https://eonet.gsfc.nasa.gov/api/v3/events?category=severeStorms&limit=30")
         ]);
         const floodsData = await floodsRes.json() as { events: unknown[] };
+        console.log(floodsData);
         const stormsData = await stormsRes.json() as { events: unknown[] };
+        console.log(stormsData);
         const combined = [...(floodsData.events || []), ...(stormsData.events || [])];
         res.json(combined);
     } catch (error) {

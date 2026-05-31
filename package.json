@@ -1,6 +1,19 @@
 {
   "name": "disasterapp",
   "version": "1.0.0",
+  "description": "The scope for this application will be within Canada to notify users and also help governments. The application will use real time from NASA’s Firms web services to provide the most updated fire areas.",
+  "homepage": "https://github.com/HiteshBhasin/DisasterApp#readme",
+  "bugs": {
+    "url": "https://github.com/HiteshBhasin/DisasterApp/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HiteshBhasin/DisasterApp.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
   "scripts": {
     "build": "cd myapp && npm install && npm run build && cd ../backend && npm install && npm run build",
     "start": "cd backend && npm start"
@@ -9,5 +22,8 @@
     "leaflet.smoothpolygons": "^0.1.1",
     "react-create": "^1.0.2",
     "react-scripts": "^5.0.1"
+  },
+  "devDependencies": {
+    "jest": "^27.5.1"
   }
 }

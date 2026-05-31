@@ -35,7 +35,7 @@ function Updates() {
             .then(data => setFloodData(data))
             .catch(() => setFloodData([]))
             .finally(() => setLoadingFlood(false));
-    }, []);
+    }, [manitobaData,floodData,loadingFlood]);
 
     return (
         <div id="updates">
