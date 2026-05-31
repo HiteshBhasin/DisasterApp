@@ -35,9 +35,6 @@ function Updates() {
             .then(data => setFloodData(data))
             .catch(() => setFloodData([]))
             .finally(() => setLoadingFlood(false));
-<<<<<<< HEAD
-    }, [manitobaData,floodData,loadingFlood]);
-=======
 
         fetch("/firespotsArcGIS")
             .then(r => r.ok ? r.json() : Promise.reject())
@@ -45,7 +42,6 @@ function Updates() {
             .catch(() => setFloodData([]))
             .finally(() => setLoadingFlood(false));
     }, []);
->>>>>>> 6d79345519ef3988d76586f8e4dffc3e3b5bd060
 
     return (
         <div id="updates">
