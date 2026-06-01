@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback, useMemo } from "react";
+import React, { useRef, useState, useEffect, useCallback, useMemo, Component } from "react";
 import { createPortal } from "react-dom";
 import LayerReturn from "./layers";
 import iconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
@@ -17,6 +17,26 @@ import {
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { EmergencyShelteraddress, MapPlacement } from "./emergencyInfo";
+
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: 12, background: "#fff3f3", border: "1px solid #e63946", borderRadius: 6, margin: 8, color: "#c00" }}>
+          <strong>Something went wrong:</strong> {this.state.error.message}
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 function MapLegend() {
   const map = useMap();
@@ -87,7 +107,11 @@ function RoutingControl({ userLocation, destination, color = "#3388ff", onStepsF
           const coords = data.routes[0].geometry.coordinates.map(([lng, lat]) => [lat, lng]);
           setRoutePoints(coords);
           if (coords.length > 0) {
-            map.fitBounds(L.latLngBounds(coords), { padding: [50, 50] });
+            try {
+              map.fitBounds(L.latLngBounds(coords), { padding: [50, 50] });
+            } catch (e) {
+              console.warn("fitBounds failed:", e.message);
+            }
           }
           if (onStepsFound) {
             const steps = data.routes[0].legs.flatMap((leg) => leg.steps);
@@ -128,6 +152,7 @@ const MANEUVER_ICONS = {
 };
 
 function getManeuverIcon(step) {
+  if (!step || !step.maneuver) return MANEUVER_ICONS.default;
   const { type, modifier } = step.maneuver;
   if (type === "turn" && MANEUVER_ICONS.turn[modifier]) return MANEUVER_ICONS.turn[modifier];
   return MANEUVER_ICONS[type] || MANEUVER_ICONS.default;
@@ -162,9 +187,9 @@ function DirectionsPanel({ steps, color = "#3388ff", label = "Your Route" }) {
           <li key={i} style={{ padding: "5px 0", borderBottom: "1px solid #eee", fontSize: "0.9rem", display: "flex", gap: "8px", alignItems: "baseline" }}>
             <span style={{ fontSize: "1.1rem", minWidth: "20px" }}>{getManeuverIcon(step)}</span>
             <span>
-              {step.maneuver.instruction
+              {step.maneuver?.instruction
                 ? step.maneuver.instruction
-                : `${step.maneuver.type}${step.maneuver.modifier ? " " + step.maneuver.modifier : ""}${step.name ? " onto " + step.name : ""}`}
+                : `${step.maneuver?.type ?? ""}${step.maneuver?.modifier ? " " + step.maneuver.modifier : ""}${step.name ? " onto " + step.name : ""}`}
               {step.distance > 0 && (
                 <span style={{ color: "#888", marginLeft: "6px", fontSize: "0.8rem" }}>({formatDist(step.distance)})</span>
               )}
@@ -471,8 +496,12 @@ function SimpleMap() {
         )}
       </div>
 
-      <DirectionsPanel steps={routeSteps} color="#3388ff" label="Your Route to Nearest Shelter" />
-      <DirectionsPanel steps={thirdPersonSteps} color="#f4a261" label="Route for Person at Pin" />
+      <ErrorBoundary>
+        <DirectionsPanel steps={routeSteps} color="#3388ff" label="Your Route to Nearest Shelter" />
+      </ErrorBoundary>
+      <ErrorBoundary>
+        <DirectionsPanel steps={thirdPersonSteps} color="#f4a261" label="Route for Person at Pin" />
+      </ErrorBoundary>
 
       <div className="page-content">
         <form id="form" style={{ display: "none" }}>
