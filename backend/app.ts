@@ -8,7 +8,8 @@ import WebScrapping from './webscrapping';
 import CBCScrapping from './cbcScrapping';
 
 const app = express();
-const port = process.env.PORT || 8088;
+const port = process.env.PORT || 8080;
+
 
 app.use(cors());
 app.use(express.json());

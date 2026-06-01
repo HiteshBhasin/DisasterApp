@@ -343,6 +343,7 @@ function SimpleMap() {
   const [shelterPositions, setShelterPositions] = useState([]);
   const [routeDestination, setRouteDestination] = useState(null);
   const cancelledRef = useRef(false);
+  const [earthQuakeInfo, setEarthQuakeInfo] = useState(null);
 
   // Third-person mode
   const [thirdPersonMode, setThirdPersonMode] = useState(false);
@@ -396,6 +397,7 @@ function SimpleMap() {
     if (nearest) setThirdPersonDest({ lat: nearest.lat, lng: nearest.lon });
   }, [thirdPersonOrigin, shelterPositions]);
 
+  
   return (
     <div className="map" id="map">
       <div style={{ position: "relative" }}>
@@ -415,11 +417,15 @@ function SimpleMap() {
           >
             {thirdPersonMode ? "📍 Click map to place pin" : "🧭 Help Someone Else"}
           </button>
+          
           {thirdPersonMode && (
             <span style={{ fontSize: "0.85rem", color: "#666" }}>
               Click anywhere on the map to route from that location to the nearest shelter.
             </span>
           )}
+          <div className="earthquake banner ">
+
+          </div>
         </div>
 
         <MapContainer

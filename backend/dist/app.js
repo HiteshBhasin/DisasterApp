@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+require("dotenv/config");
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const fs_1 = __importDefault(require("fs"));
@@ -10,7 +11,7 @@ const path_1 = __importDefault(require("path"));
 const webscrapping_1 = __importDefault(require("./webscrapping"));
 const cbcScrapping_1 = __importDefault(require("./cbcScrapping"));
 const app = (0, express_1.default)();
-const port = process.env.PORT || 8088;
+const port = process.env.PORT || 8080;
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 app.get("/home", (req, res) => {
@@ -52,7 +53,9 @@ app.get("/floodevents", async (req, res) => {
             fetch("https://eonet.gsfc.nasa.gov/api/v3/events?category=severeStorms&limit=30")
         ]);
         const floodsData = await floodsRes.json();
+        console.log(floodsData);
         const stormsData = await stormsRes.json();
+        console.log(stormsData);
         const combined = [...(floodsData.events || []), ...(stormsData.events || [])];
         res.json(combined);
     }
@@ -74,7 +77,9 @@ app.get("/eonetevents", async (req, res) => {
 });
 app.get("/firespots", async (req, res) => {
     try {
-        const response = await fetch("https://firms.modaps.eosdis.nasa.gov/api/area/json/a1531693fe55b8fce18f80c7f1417972/MODIS_NRT/NorthAmerica/24h");
+        const firmsApiKey = process.env.NASA_FIRM_API_KEY || "a1531693fe55b8fce18f80c7f1417972";
+        const response = await fetch(`https://firms.modaps.eosdis.nasa.gov/api/area/json/${firmsApiKey}/MODIS_NRT/NorthAmerica/24h`);
+        console.log(response);
         if (!response.ok) {
             res.status(response.status).json({ error: "NASA FIRMS request failed" });
             return;
@@ -84,6 +89,36 @@ app.get("/firespots", async (req, res) => {
     }
     catch (error) {
         console.error("NASA FIRMS fetch failed", error);
+        res.status(500).json({ error: "Failed to fetch fire data" });
+    }
+});
+app.get("/firespotsArcGIS", async (req, res) => {
+    try {
+        const response = await fetch("https://eonet.gsfc.nasa.gov/api/v3/events?category=wildfires&status=open&limit=100");
+        if (!response.ok) {
+            res.status(response.status).json({ error: "EONET wildfires request failed" });
+            return;
+        }
+        const data = await response.json();
+        const normalized = (data.events || [])
+            .filter(e => e.geometry && e.geometry.length > 0)
+            .map(e => {
+            const geo = e.geometry[e.geometry.length - 1];
+            return {
+                latitude: geo.coordinates[1],
+                longitude: geo.coordinates[0],
+                acq_date: geo.date ? geo.date.slice(0, 10) : "",
+                acq_time: "",
+                firename: e.title,
+                stage_of_control: "",
+                hectares: geo.magnitudeUnit === "acres" ? (geo.magnitudeValue ?? null) : null,
+            };
+        })
+            .filter(e => e.latitude != null && e.longitude != null);
+        res.json(normalized);
+    }
+    catch (error) {
+        console.error("EONET wildfires fetch failed", error);
         res.status(500).json({ error: "Failed to fetch fire data" });
     }
 });
