@@ -154,8 +154,10 @@ const MANEUVER_ICONS = {
 function getManeuverIcon(step) {
   if (!step || !step.maneuver) return MANEUVER_ICONS.default;
   const { type, modifier } = step.maneuver;
-  if (type === "turn" && MANEUVER_ICONS.turn[modifier]) return MANEUVER_ICONS.turn[modifier];
-  return MANEUVER_ICONS[type] || MANEUVER_ICONS.default;
+  if (type === "turn") return MANEUVER_ICONS.turn[modifier] || MANEUVER_ICONS.default;
+  const icon = MANEUVER_ICONS[type];
+  if (typeof icon === "string") return icon;
+  return MANEUVER_ICONS.default;
 }
 
 function formatDist(meters) {
