@@ -416,7 +416,7 @@ function SimpleMap() {
             {thirdPersonMode ? "📍 Click map to place pin" : "🧭 Help Someone Else"}
           </button>
           {thirdPersonMode && (
-            <span style={{ fontSize: "0.85rem", color: "#000000" }}>
+            <span style={{ fontSize: "0.85rem", color: "#666" }}>
               Click anywhere on the map to route from that location to the nearest shelter.
             </span>
           )}
