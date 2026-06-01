@@ -1,4 +1,5 @@
 
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import fs from 'fs';
@@ -75,7 +76,9 @@ app.get("/eonetevents", async (req, res) => {
 
 app.get("/firespots", async (req, res) => {
     try {
-        const response = await fetch("https://firms.modaps.eosdis.nasa.gov/api/area/json/a1531693fe55b8fce18f80c7f1417972/MODIS_NRT/NorthAmerica/24h");
+        const firmsApiKey = process.env.NASA_FIRM_API_KEY || "a1531693fe55b8fce18f80c7f1417972";
+        const response = await fetch(`https://firms.modaps.eosdis.nasa.gov/api/area/json/${firmsApiKey}/MODIS_NRT/NorthAmerica/24h`);
+        console.log(response);
         if (!response.ok) {
             res.status(response.status).json({ error: "NASA FIRMS request failed" });
             return;
@@ -89,27 +92,30 @@ app.get("/firespots", async (req, res) => {
 });
 app.get("/firespotsArcGIS", async (req, res) => {
     try {
-        const url = "https://services.arcgis.com/txWDfZ2LIgzmw5Ts/arcgis/rest/services/cwfis_active_fires_updated_view/FeatureServer/0/query?where=1%3D1&outFields=lat%2Clon%2Cfirename%2Cstartdate%2Cstage_of_control%2Chectares&returnGeometry=false&f=json";
-        const response = await fetch(url);
+        const response = await fetch("https://eonet.gsfc.nasa.gov/api/v3/events?category=wildfires&status=open&limit=100");
         if (!response.ok) {
-            res.status(response.status).json({ error: "ArcGIS request failed" });
+            res.status(response.status).json({ error: "EONET wildfires request failed" });
             return;
         }
-        const data = await response.json() as { features?: { attributes: { lat: number | null, lon: number | null, firename: string | null, startdate: string | null, stage_of_control: string | null, hectares: number | null } }[] };
-        const normalized = (data.features || [])
-            .filter(f => f.attributes.lat != null && f.attributes.lon != null)
-            .map(f => ({
-                latitude: f.attributes.lat,
-                longitude: f.attributes.lon,
-                acq_date: f.attributes.startdate || "",
-                acq_time: "",
-                firename: f.attributes.firename || "",
-                stage_of_control: f.attributes.stage_of_control || "",
-                hectares: f.attributes.hectares,
-            }));
+        const data = await response.json() as { events: { title: string, geometry: { type: string, coordinates: number[], date: string, magnitudeValue?: number, magnitudeUnit?: string }[] }[] };
+        const normalized = (data.events || [])
+            .filter(e => e.geometry && e.geometry.length > 0)
+            .map(e => {
+                const geo = e.geometry[e.geometry.length - 1];
+                return {
+                    latitude: geo.coordinates[1],
+                    longitude: geo.coordinates[0],
+                    acq_date: geo.date ? geo.date.slice(0, 10) : "",
+                    acq_time: "",
+                    firename: e.title,
+                    stage_of_control: "",
+                    hectares: geo.magnitudeUnit === "acres" ? (geo.magnitudeValue ?? null) : null,
+                };
+            })
+            .filter(e => e.latitude != null && e.longitude != null);
         res.json(normalized);
     } catch (error) {
-        console.error("ArcGIS fetch failed", error);
+        console.error("EONET wildfires fetch failed", error);
         res.status(500).json({ error: "Failed to fetch fire data" });
     }
 });
