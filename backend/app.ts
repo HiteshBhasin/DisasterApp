@@ -130,7 +130,7 @@ app.get("/fetchActiveFires", async (req, res) => {
             returnGeometry: "true",
             f: "geojson"
         })
-        const response = await fetch(`${baseUrl}?${params.toString()}}`);
+        const response = await fetch(`${baseUrl}?${params.toString()}`);
         if (!response.ok) {
             res.status(response.status).json({ error: `HTTP error! Status: ${response.status}` });
             return;
