@@ -152,6 +152,75 @@ app.get("/fetchActiveFires", async (req, res) => {
     }
 });
 
+// ── AEF Integration ─────────────────────────────────────────────────────────
+const AEF_BASE = process.env.AEF_API_URL || "http://localhost:8000";
+const AEF_API_KEY = process.env.AEF_API_KEY || "";
+
+// POST /aef/incident  — portal submits an incident; forwards to AEF POST /api/v1/tasks
+app.post("/aef/incident", async (req, res) => {
+    try {
+        const response = await fetch(`${AEF_BASE}/api/v1/tasks`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                ...(AEF_API_KEY ? { "Authorization": `Bearer ${AEF_API_KEY}` } : {}),
+            },
+            body: JSON.stringify(req.body),
+        });
+        const data = await response.json();
+        res.status(response.status).json(data);
+    } catch (error) {
+        console.error("AEF incident submit failed", error);
+        res.status(500).json({ error: "Failed to submit incident to AEF" });
+    }
+});
+
+// GET /aef/status/:goalId  — poll AEF for task progress on a given incident
+app.get("/aef/status/:goalId", async (req, res) => {
+    try {
+        const response = await fetch(
+            `${AEF_BASE}/api/v1/tasks?goal_id=${encodeURIComponent(req.params.goalId)}`,
+            { headers: { ...(AEF_API_KEY ? { "Authorization": `Bearer ${AEF_API_KEY}` } : {}) } }
+        );
+        const data = await response.json();
+        res.status(response.status).json(data);
+    } catch (error) {
+        console.error("AEF status poll failed", error);
+        res.status(500).json({ error: "Failed to fetch AEF status" });
+    }
+});
+
+// GET /aef/stream  — proxy AEF's Server-Sent Events stream to the browser
+app.get("/aef/stream", async (req, res) => {
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+
+    try {
+        const upstream = await fetch(`${AEF_BASE}/api/v1/system/stream`, {
+            headers: { ...(AEF_API_KEY ? { "Authorization": `Bearer ${AEF_API_KEY}` } : {}) },
+        });
+        const reader = upstream.body?.getReader();
+        if (!reader) { res.end(); return; }
+        const decoder = new TextDecoder();
+        const pump = async () => {
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done || req.destroyed) break;
+                res.write(decoder.decode(value));
+            }
+            res.end();
+        };
+        pump().catch(() => res.end());
+        req.on("close", () => reader.cancel());
+    } catch (error) {
+        console.error("AEF stream proxy failed", error);
+        res.end();
+    }
+});
+// ────────────────────────────────────────────────────────────────────────────
+
 const buildPath = path.join(__dirname, "../../myapp/build");
 const buildPathFallback = path.join(__dirname, "../myapp/build");
 const resolvedBuild = require('fs').existsSync(path.join(buildPath, 'index.html')) ? buildPath : buildPathFallback;

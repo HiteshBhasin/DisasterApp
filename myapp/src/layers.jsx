@@ -1,10 +1,49 @@
-import {useState, useEffect} from "react";
+import {useState, useEffect, useRef} from "react";
 import L from 'leaflet';
 import { Marker, Popup, LayersControl, TileLayer, LayerGroup} from 'react-leaflet';
 
 const nasaApi = "/firespots";
 const firespotsArcGIS = "/firespotsArcGIS";
 const canadaFiresApi = "/fetchActiveFires";
+
+// ── AEF helpers ──────────────────────────────────────────────────────────────
+const STEP_LABELS = {
+    assess_route:  "Assessing route…",
+    clear_zone:    "Zone cleared ✓",
+    dispatch:      "Units dispatched ✓",
+    complete:      "Incident resolved ✓",
+};
+
+async function submitIncidentToAEF(fire) {
+    const description =
+        `Wildfire detected at lat ${fire.lat}, lon ${fire.lon}. ` +
+        `Agency: ${fire.agency || "unknown"}. ` +
+        `Size: ${fire.sizeHectares != null ? fire.sizeHectares + " ha" : "unknown"}. ` +
+        `Reported: ${fire.reportDate || "now"}.`;
+    try {
+        const res = await fetch("/aef/incident", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ description, location: { lat: fire.lat, lon: fire.lon } }),
+        });
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data.goal_id ?? data.id ?? null;
+    } catch {
+        return null;
+    }
+}
+
+async function pollAEFStatus(goalId) {
+    try {
+        const res = await fetch(`/aef/status/${goalId}`);
+        if (!res.ok) return null;
+        return await res.json();
+    } catch {
+        return null;
+    }
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 function LayerReturn() {
        const fireIcon = L.icon({
@@ -25,6 +64,9 @@ function LayerReturn() {
     const [floodData, setFloodData] = useState([]);
     const [arcGisData, setArcGisData] = useState([]);
     const [canadaFireData, setCanadaFireData] = useState([]);
+    // AEF: map of fireId → { goalId, tasks: [], currentStep }
+    const [aefIncidents, setAefIncidents] = useState({});
+    const submittedFireIds = useRef(new Set());
     
     useEffect(() => {
         async function fetchData() {
@@ -106,7 +148,7 @@ function LayerReturn() {
                         const lat = parseFloat(jData.latitude);
                         const lon = parseFloat(jData.longitude);
                         if (!isNaN(lat) && !isNaN(lon)) {
-                            newData.push({
+                            const fire = {
                                 lat,
                                 lon,
                                 fireId: jData.fireId,
@@ -114,7 +156,22 @@ function LayerReturn() {
                                 sizeHectares: jData.sizeHectares,
                                 stageOfControl: jData.stageOfControl,
                                 reportDate: jData.reportDate,
-                            });
+                            };
+                            newData.push(fire);
+
+                            // Auto-submit new fires to AEF (deduplicated by fireId)
+                            const key = String(jData.fireId ?? `${lat}_${lon}`);
+                            if (!submittedFireIds.current.has(key)) {
+                                submittedFireIds.current.add(key);
+                                submitIncidentToAEF(fire).then(goalId => {
+                                    if (goalId) {
+                                        setAefIncidents(prev => ({
+                                            ...prev,
+                                            [key]: { goalId, lat, lon, tasks: [], currentStep: "assess_route" }
+                                        }));
+                                    }
+                                });
+                            }
                         }
                     }
                 }
@@ -137,6 +194,28 @@ function LayerReturn() {
         }, 5 * 60 * 1000); // refresh every 5 minutes
 
         return () => clearInterval(interval);
+    }, []);
+
+    // Poll AEF every 30s for status updates on submitted incidents
+    useEffect(() => {
+        const pollInterval = setInterval(async () => {
+            setAefIncidents(prev => {
+                const entries = Object.entries(prev);
+                if (entries.length === 0) return prev;
+                entries.forEach(([key, incident]) => {
+                    if (incident.currentStep === "complete") return;
+                    pollAEFStatus(incident.goalId).then(tasks => {
+                        if (!tasks) return;
+                        const taskList = Array.isArray(tasks) ? tasks : tasks.tasks ?? [];
+                        const lastDone = [...taskList].reverse().find(t => t.status === "completed" || t.status === "done");
+                        const currentStep = lastDone?.name ?? incident.currentStep;
+                        setAefIncidents(p => ({ ...p, [key]: { ...p[key], tasks: taskList, currentStep } }));
+                    });
+                });
+                return prev;
+            });
+        }, 30 * 1000);
+        return () => clearInterval(pollInterval);
     }, []);
 
     return (
@@ -201,6 +280,31 @@ function LayerReturn() {
                             </Popup>
                         </Marker>
                     ))}
+                </LayerGroup>
+            </LayersControl.Overlay>
+            <LayersControl.Overlay checked name="🚨 AEF Incidents">
+                <LayerGroup>
+                    {Object.values(aefIncidents).map((incident, idx) => {
+                        const label = STEP_LABELS[incident.currentStep] ?? incident.currentStep ?? "Submitted to AEF";
+                        return (
+                            <Marker key={idx} position={[incident.lat, incident.lon]} icon={fireIcon}>
+                                <Popup>
+                                    <strong>AEF Incident</strong><br />
+                                    Status: <em>{label}</em><br />
+                                    Goal ID: {incident.goalId}<br />
+                                    {incident.tasks.length > 0 && (
+                                        <ol style={{margin:"4px 0 0 16px", padding:0, fontSize:"0.85em"}}>
+                                            {incident.tasks.map((t, i) => (
+                                                <li key={i} style={{color: t.status === "completed" ? "green" : t.status === "in_progress" ? "orange" : "#555"}}>
+                                                    {STEP_LABELS[t.name] ?? t.name} — {t.status}
+                                                </li>
+                                            ))}
+                                        </ol>
+                                    )}
+                                </Popup>
+                            </Marker>
+                        );
+                    })}
                 </LayerGroup>
             </LayersControl.Overlay>
         </LayersControl>
