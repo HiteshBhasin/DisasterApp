@@ -4,6 +4,7 @@ import { Marker, Popup, LayersControl, TileLayer, LayerGroup} from 'react-leafle
 
 const nasaApi = "/firespots";
 const firespotsArcGIS = "/firespotsArcGIS";
+const canadaFiresApi = "/fetchActiveFires";
 
 function LayerReturn() {
        const fireIcon = L.icon({
@@ -23,6 +24,7 @@ function LayerReturn() {
     const [fireData, getData] = useState([]);
     const [floodData, setFloodData] = useState([]);
     const [arcGisData, setArcGisData] = useState([]);
+    const [canadaFireData, setCanadaFireData] = useState([]);
     
     useEffect(() => {
         async function fetchData() {
@@ -93,14 +95,45 @@ function LayerReturn() {
             }
         }
 
+        async function fetchCanadaFires() {
+            try {
+                const data = await fetch(canadaFiresApi);
+                if (!data.ok) return;
+                const jsonData = await data.json();
+                const newData = [];
+                if (jsonData && jsonData.length > 0) {
+                    for (const jData of jsonData) {
+                        const lat = parseFloat(jData.latitude);
+                        const lon = parseFloat(jData.longitude);
+                        if (!isNaN(lat) && !isNaN(lon)) {
+                            newData.push({
+                                lat,
+                                lon,
+                                fireId: jData.fireId,
+                                agency: jData.agency,
+                                sizeHectares: jData.sizeHectares,
+                                stageOfControl: jData.stageOfControl,
+                                reportDate: jData.reportDate,
+                            });
+                        }
+                    }
+                }
+                setCanadaFireData(newData);
+            } catch (error) {
+                console.log(error.message, "canada fire data not coming");
+            }
+        }
+
         fetchData();
         fetchFloodData();
         fetchArgisData();
+        fetchCanadaFires();
 
         const interval = setInterval(() => {
             fetchData();
             fetchFloodData();
             fetchArgisData();
+            fetchCanadaFires();
         }, 5 * 60 * 1000); // refresh every 5 minutes
 
         return () => clearInterval(interval);
@@ -150,6 +183,21 @@ function LayerReturn() {
                                 {fire.date && <>Start Date: {fire.date}<br /></>}
                                 {fire.stage_of_control && <>Stage: {fire.stage_of_control}<br /></>}
                                 {fire.hectares != null && <>Size: {fire.hectares} ha</>}
+                            </Popup>
+                        </Marker>
+                    ))}
+                </LayerGroup>
+            </LayersControl.Overlay>
+            <LayersControl.Overlay checked name="🔥 Fires (Canada CWFIS)">
+                <LayerGroup>
+                    {canadaFireData.map((fire, idx) => (
+                        <Marker key={idx} position={[fire.lat, fire.lon]} icon={fireIcon}>
+                            <Popup>
+                                <strong>{fire.fireId || "Canadian Active Fire"}</strong><br />
+                                {fire.agency && <>Agency: {fire.agency}<br /></>}
+                                {fire.stageOfControl && <>Stage: {fire.stageOfControl}<br /></>}
+                                {fire.sizeHectares != null && <>Size: {fire.sizeHectares} ha<br /></>}
+                                {fire.reportDate && <>Report Date: {fire.reportDate}</>}
                             </Popup>
                         </Marker>
                     ))}
