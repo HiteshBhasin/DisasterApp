@@ -99,6 +99,7 @@ app.get("/firespotsArcGIS", async (req, res) => {
             return;
         }
         const data = await response.json() as { events: { title: string, geometry: { type: string, coordinates: number[], date: string, magnitudeValue?: number, magnitudeUnit?: string }[] }[] };
+        console.log(data);
         const normalized = (data.events || [])
             .filter(e => e.geometry && e.geometry.length > 0)
             .map(e => {
@@ -120,6 +121,41 @@ app.get("/firespotsArcGIS", async (req, res) => {
         res.status(500).json({ error: "Failed to fetch fire data" });
     }
 });
+app.get("/fetchActiveFires", async (req, res) => {
+    try {
+        const baseUrl = "https://services.arcgis.com/txWDfZ2LIgzmw5Ts/arcgis/rest/services/cwfis_active_fires_updated_view/FeatureServer/0/query";
+        const params = new URLSearchParams({
+            where: "1=1",
+            outFields: "*",
+            returnGeometry: "true",
+            f: "geojson"
+        })
+        const response = await fetch(`${baseUrl}?${params.toString()}}`);
+        if (!response.ok) {
+            res.status(response.status).json({ error: `HTTP error! Status: ${response.status}` });
+            return;
+        }
+        const data = await response.json();
+        console.log(data);
+        const normalized = data.features.map((feature:any)=>{
+            const props = feature.properties;
+            return {
+                fireId: props.national_fire_id,
+                agency: props.agency_code,               // e.g., 'AB' for Alberta
+                latitude: props.latitude,               // 50.26442
+                longitude: props.longitude,             // -114.31613
+                sizeHectares: props.fire_size,          // 0.01
+                stageOfControl: props.stage_of_control_status, // e.g., 'EX' (Extinguished), 'OC' (Out of Control)
+                reportDate: props.situation_report_date
+            }
+        });
+        res.json(normalized);
+    } catch (error) {
+        console.error("EONET wildfires fetch failed", error);
+        res.status(500).json({ error: "Failed to fetch fire data" });
+    }
+});
+
 const buildPath = path.join(__dirname, "../../myapp/build");
 const buildPathFallback = path.join(__dirname, "../myapp/build");
 const resolvedBuild = require('fs').existsSync(path.join(buildPath, 'index.html')) ? buildPath : buildPathFallback;
